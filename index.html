@@ -1,0 +1,1621 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0879C9">
+<title>TerraCost</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --p:#0879C9;--p-d:#0667AB;--p-soft:#E3F0FA;--p-softer:#F0F7FD;
+  --bg:#F4F7FB;--card:#FFFFFF;--ink:#0B2545;--ink2:#3A4D66;--mut:#6B7A90;--line:#E3E9F1;
+  --red:#D9484A;--ok:#1E9E6A;--warn:#E59A1A;--r:16px;
+  --font:"Pretendard","Pretendard Variable","Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:#E6ECF4;font-family:var(--font);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;display:block}
+.flag{width:26px;height:18px;border-radius:4px;flex:none;display:block;box-shadow:0 0 0 .5px rgba(11,37,69,.15)}
+
+/* ---------- App shell ---------- */
+.app{position:relative;width:100%;max-width:460px;height:100vh;height:100dvh;margin:0 auto;background:var(--bg);overflow:hidden}
+@media (min-width:520px) and (max-width:767px){
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+  .app{height:min(900px,calc(100vh - 48px));border-radius:36px;box-shadow:0 0 0 10px #0B2545,0 30px 80px rgba(11,37,69,.25)}
+}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transform:translateX(100%);visibility:hidden;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s linear .32s}
+.screen.active{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.2,.8,.2,1),visibility 0s}
+.screen.pos-left{transform:translateX(-28%)}
+.screen.pos-right{transform:translateX(100%)}
+.no-anim{transition:none!important}
+@media (prefers-reduced-motion:reduce){.screen,.screen.active{transition:none}}
+
+.hdr{height:60px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 10px;padding-top:env(safe-area-inset-top)}
+.hdr h1{font-size:17px;font-weight:700;margin:0;letter-spacing:-.2px}
+.hdr h1.caps{letter-spacing:2px;text-transform:uppercase;font-size:15px}
+.ibtn{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:var(--ink);transition:background .15s,transform .1s}
+.ibtn:hover{background:rgba(8,121,201,.08)}
+.ibtn:active{transform:scale(.92);background:var(--p-soft)}
+.ibtn.sm{width:32px;height:32px;border-radius:10px}
+.ibtn.sm .ic{width:18px;height:18px}
+.ibtn.blue{color:var(--p)}
+.ibtn.placeholder{visibility:hidden}
+.brand{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--ink);letter-spacing:-.3px}
+.brand b{color:var(--p);font-weight:800}
+.mark{width:30px;height:30px;border-radius:10px;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center}
+.mark .ic{width:19px;height:19px}
+.body{flex:1;overflow-y:auto;padding:4px 16px 24px;-webkit-overflow-scrolling:touch}
+.body::-webkit-scrollbar{width:0}
+
+.card{background:var(--card);border-radius:var(--r);padding:14px 16px}
+.label{font-size:12px;font-weight:600;color:var(--mut);margin:0 0 6px;letter-spacing:.2px}
+.muted{color:var(--mut)}
+.err{color:var(--red);font-size:13px;margin:6px 2px 0;min-height:0}
+.err:empty{display:none}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
+.btn{height:48px;border-radius:14px;padding:0 18px;font-weight:700;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .1s,background .15s,filter .15s}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--p);color:#fff}
+.btn.primary:hover{background:var(--p-d)}
+.btn.soft{background:var(--p-soft);color:var(--p)}
+.btn.ghost{background:#EEF2F7;color:var(--ink2)}
+.btn.danger{background:#FDECEC;color:var(--red)}
+.btn.block{width:100%}
+.btn .ic{width:18px;height:18px}
+
+select.sel,input.inp,textarea.inp{width:100%;height:46px;border-radius:12px;border:1.5px solid var(--line);background:#fff;padding:0 12px;font-size:15px;outline:none;transition:border-color .15s,box-shadow .15s}
+textarea.inp{height:84px;padding:10px 12px;resize:none;line-height:1.5}
+select.sel{appearance:none;-webkit-appearance:none;padding-right:34px;cursor:pointer;
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7A90' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center/18px}
+select.sel:focus,input.inp:focus,textarea.inp:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(8,121,201,.15)}
+input.inp.bad{border-color:var(--red)}
+
+/* ---------- Keypad ---------- */
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:9px;flex:1;min-height:250px;max-height:430px}
+.key{background:#fff;border-radius:18px;font-size:23px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:transform .08s,background .12s;user-select:none;box-shadow:0 1px 0 rgba(11,37,69,.05)}
+.key:hover{background:#FAFCFE}
+.key:active,.key.pressed{transform:scale(.94);background:var(--p-soft)}
+.key.op{background:var(--p-soft);color:var(--p);font-size:26px}
+.key.op:active,.key.op.pressed{background:#CFE5F6}
+.key.fn{color:var(--ink2);font-size:20px}
+.key.clr{color:var(--red)}
+.key.eq{background:var(--p);color:#fff;font-size:28px}
+.key.eq:active,.key.eq.pressed{background:var(--p-d)}
+.key .ic{width:26px;height:26px}
+
+/* ---------- Main converter ---------- */
+.main-body{flex:1;display:flex;flex-direction:column;gap:10px;padding:2px 16px 16px;min-height:0}
+.cv{background:#fff;border-radius:20px;padding:14px 16px 12px;position:relative}
+.cv-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cur-btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 10px 0 8px;border-radius:12px;background:var(--bg);font-weight:700;font-size:15px;transition:background .15s,transform .1s}
+.cur-btn:hover{background:var(--p-soft)}
+.cur-btn:active{transform:scale(.96)}
+.cur-btn .ic{width:16px;height:16px;color:var(--mut)}
+.cv-name{font-size:12px;color:var(--mut);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-val{font-size:34px;font-weight:700;text-align:right;letter-spacing:-.8px;margin-top:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.cv-val.long{font-size:26px}.cv-val.longer{font-size:20px}
+.cv-val.blue{color:var(--p)}
+.cv-sub{font-size:13px;color:var(--mut);text-align:right;min-height:18px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cv-sub.bad{color:var(--red)}
+.swap-wrap{height:0;position:relative;z-index:2;display:flex;justify-content:center}
+.swap{position:absolute;top:-21px;width:42px;height:42px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 5px var(--bg);transition:transform .25s}
+.swap:hover{background:var(--p-d)}
+.swap:active{transform:rotate(180deg) scale(.92)}
+.rate-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);padding:0 4px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--warn);flex:none}
+.dot.live{background:var(--ok)}
+.rate-status span.txt{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spin{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media (max-height:700px){
+  .cv{padding:10px 14px 8px}.cv-val{font-size:28px;margin-top:4px}
+  .keypad{gap:7px;min-height:220px}.key{font-size:20px;border-radius:14px}
+}
+
+/* ---------- Menu ---------- */
+.menu-list{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.m-item{display:flex;align-items:center;gap:14px;background:#fff;border-radius:20px;padding:18px 16px;text-align:left;transition:background .15s,color .15s,transform .1s;width:100%}
+.m-item .m-ic{width:50px;height:50px;border-radius:16px;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;flex:none;transition:background .15s,color .15s}
+.m-item .m-ic .ic{width:26px;height:26px}
+.m-item b{display:block;font-size:17px;font-weight:700}
+.m-item small{display:block;font-size:13px;color:var(--mut);margin-top:3px;transition:color .15s}
+.m-item .chev{margin-left:auto;color:#B6C2D2}
+.m-item:hover,.m-item.on{background:var(--p);color:#fff}
+.m-item:hover .m-ic,.m-item.on .m-ic{background:rgba(255,255,255,.18);color:#fff}
+.m-item:hover small,.m-item.on small,.m-item:hover .chev,.m-item.on .chev{color:rgba(255,255,255,.8)}
+.m-item:active{transform:scale(.98)}
+.menu-foot{padding:20px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+
+/* ---------- Tip ---------- */
+.tip-body{flex:1;display:flex;flex-direction:column;gap:10px;padding:2px 16px 16px;min-height:0}
+.tfield{display:flex;align-items:center;justify-content:space-between;width:100%;padding:12px 14px;border-radius:14px;border:2px solid transparent;background:var(--bg);transition:border-color .15s,background .15s}
+.tfield+.tfield{margin-top:8px}
+.tfield span{font-size:13px;color:var(--mut);font-weight:600}
+.tfield strong{font-size:22px;font-weight:700;letter-spacing:-.4px}
+.tfield strong.ph{color:#B6C2D2}
+.tfield.on{border-color:var(--p);background:#fff}
+.tfield.on strong::after{content:"";display:inline-block;width:2px;height:22px;background:var(--p);margin-left:2px;vertical-align:-3px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{height:34px;padding:0 14px;border-radius:999px;background:#fff;font-size:14px;font-weight:600;color:var(--ink2);transition:background .15s,color .15s,transform .1s}
+.chip:active{transform:scale(.95)}
+.chip.on{background:var(--p);color:#fff}
+.tip-res{background:var(--p);color:#fff;border-radius:18px;padding:12px 16px}
+.tip-res .row+.row{margin-top:4px}
+.tip-res span{font-size:13px;opacity:.85}
+.tip-res .big{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.tip-res .mid{font-size:17px;font-weight:700}
+
+/* ---------- Budget ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--p-soft);color:var(--p);font-weight:700;font-size:13px}
+.badge .ic{width:16px;height:16px}
+.cost{background:#fff;border-radius:var(--r);padding:14px;margin-top:10px}
+.cost-h{display:flex;align-items:center;gap:12px}
+.cost-ic{width:42px;height:42px;border-radius:13px;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;flex:none}
+.cost-h b{display:block;font-size:15px}
+.cost-h small{display:block;font-size:12px;color:var(--mut);margin-top:1px}
+.cost-sub{margin-left:auto;font-weight:800;font-size:17px;text-align:right;white-space:nowrap}
+.cost-in{display:flex;align-items:flex-end;gap:6px;margin-top:12px}
+.cost-in .times{color:var(--mut);padding-bottom:13px;font-size:14px}
+.fld{flex:1;min-width:0}
+.fld small,.qty small{display:block;font-size:11px;color:var(--mut);margin:0 0 4px 2px;white-space:nowrap}
+.fld .wrap{display:flex;align-items:center;height:44px;border-radius:12px;border:1.5px solid var(--line);padding:0 10px;transition:border-color .15s,box-shadow .15s;background:#fff}
+.fld .wrap:focus-within{border-color:var(--p);box-shadow:0 0 0 3px rgba(8,121,201,.15)}
+.fld .wrap span{color:var(--mut);font-weight:600;margin-right:4px;font-size:14px}
+.fld input,.qty input{border:0;outline:0;width:100%;min-width:0;font-size:16px;font-weight:600;background:transparent}
+.qty{width:74px;flex:none}
+.qty .wrap{height:44px;border-radius:12px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;padding:0 6px;background:#fff}
+.qty .wrap:focus-within{border-color:var(--p)}
+.qty input{text-align:center}
+.qty.ro .wrap{background:var(--bg);border-color:var(--bg);font-weight:700;font-size:15px}
+.extra-row{display:flex;gap:6px;margin-top:8px;align-items:center}
+.extra-row input{height:42px}
+.extra-row .n{flex:1.3}.extra-row .a{flex:1}
+.add-line{margin-top:10px;width:100%;height:42px;border-radius:12px;border:1.5px dashed #C7D3E2;color:var(--p);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s}
+.add-line:hover{background:var(--p-softer)}
+.add-line .ic{width:18px;height:18px}
+.budget-foot{flex:none;background:#fff;border-radius:24px 24px 0 0;padding:14px 18px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(11,37,69,.08)}
+.budget-foot .tot{font-size:28px;font-weight:800;letter-spacing:-.6px;color:var(--ink)}
+.bar{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--bg);margin-top:10px}
+.bar i{display:block;height:100%;transition:width .3s}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;font-size:12px;color:var(--mut)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:8px;height:8px;border-radius:3px;display:inline-block}
+
+/* ---------- Note ---------- */
+.trip{display:flex;align-items:center;gap:10px;background:var(--p);color:#fff;border-radius:20px;padding:14px 16px}
+.trip .t-l{flex:1;min-width:0}
+.trip small{display:block;font-size:12px;opacity:.8}
+.trip b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trip .t-r{text-align:right}
+.trip .t-r b{font-size:18px}
+.cal-card{background:#fff;border-radius:20px;padding:12px 10px 10px;margin-top:10px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:0 2px 6px}
+.cal-nav b{font-size:16px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal .wd{font-size:12px;font-weight:600;color:var(--mut);text-align:center;padding:6px 0}
+.cal .wd.sun{color:var(--red)}.cal .wd.sat{color:var(--p)}
+.day{position:relative;aspect-ratio:1/1;max-height:52px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:15px;font-weight:600;transition:background .12s,transform .08s}
+.day:hover{background:var(--bg)}
+.day:active{transform:scale(.92)}
+.day.sun{color:var(--red)}.day.sat{color:var(--p)}
+.day.other{opacity:.3}
+.day.today{box-shadow:inset 0 0 0 1.5px var(--p)}
+.day.sel{background:var(--p);color:#fff!important}
+.day.has::after{content:"";position:absolute;bottom:6px;width:5px;height:5px;border-radius:50%;background:var(--p)}
+.day.sel.has::after{background:#fff}
+.day-h{display:flex;align-items:center;justify-content:space-between;margin:16px 2px 8px}
+.day-h b{font-size:16px}
+.ex-item{display:flex;align-items:center;gap:12px;width:100%;background:#fff;border-radius:16px;padding:12px 14px;text-align:left;transition:background .15s,transform .1s}
+.ex-item+.ex-item{margin-top:8px}
+.ex-item:hover{background:#FAFCFE}
+.ex-item:active{transform:scale(.98)}
+.ex-ic{width:40px;height:40px;border-radius:12px;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;flex:none}
+.ex-ic .ic{width:20px;height:20px}
+.ex-mid{flex:1;min-width:0}
+.ex-mid b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-mid small{display:block;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.ex-amt{font-weight:800;font-size:15px;white-space:nowrap}
+.empty{background:#fff;border-radius:16px;padding:26px 16px;text-align:center;color:var(--mut)}
+.empty .ic{width:36px;height:36px;margin:0 auto 8px;color:#B6C2D2}
+.empty b{display:block;color:var(--ink2);font-size:15px;margin-bottom:4px}
+.empty small{font-size:13px}
+
+/* ---------- Settings ---------- */
+.list{background:#fff;border-radius:20px;overflow:hidden}
+.li{display:flex;align-items:center;gap:14px;width:100%;padding:16px;text-align:left;transition:background .15s}
+.li+.li{border-top:1px solid var(--line)}
+.li:hover{background:var(--p-softer)}
+.li:active{background:var(--p-soft)}
+.li .li-ic{width:40px;height:40px;border-radius:12px;background:var(--p-soft);color:var(--p);display:flex;align-items:center;justify-content:center;flex:none}
+.li b{font-size:16px;font-weight:600;flex:1}
+.li .val{color:var(--mut);font-size:14px}
+.li .chev{color:#B6C2D2;width:18px;height:18px}
+.li .star{color:#C7D3E2;width:20px;height:20px}
+.li.on .star{color:var(--p);fill:var(--p)}
+.li.on b{color:var(--p)}
+.li .chk{color:var(--p);opacity:0}
+.li.on .chk{opacity:1}
+.li small{display:block;font-size:12px;color:var(--mut);font-weight:400;margin-top:2px}
+.sec-t{font-size:13px;font-weight:700;color:var(--mut);margin:20px 4px 8px}
+.avatar{width:64px;height:64px;border-radius:50%;background:var(--p);color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.foot-note{text-align:center;color:var(--mut);font-size:12px;margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:6px}
+
+/* ---------- Sheet / toast ---------- */
+.overlay{position:absolute;inset:0;background:rgba(11,37,69,.45);opacity:0;pointer-events:none;transition:opacity .25s;z-index:50}
+.overlay.open{opacity:1;pointer-events:auto}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:90%;overflow-y:auto;background:#fff;border-radius:26px 26px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.overlay.open .sheet{transform:none}
+.grab{width:40px;height:5px;border-radius:9px;background:#D5DEE9;margin:0 auto 12px}
+.sheet h2{font-size:19px;margin:0 0 14px;font-weight:800}
+.sheet .fgroup{margin-bottom:12px}
+.sheet .btns{display:flex;gap:8px;margin-top:16px}
+.sheet .btns .btn{flex:1}
+.cur-opt{display:flex;align-items:center;gap:12px;width:100%;padding:12px 8px;border-radius:12px;text-align:left;transition:background .12s}
+.cur-opt:hover{background:var(--bg)}
+.cur-opt b{font-weight:700;width:44px}
+.cur-opt span{flex:1;color:var(--mut);font-size:14px}
+.cur-opt.on{background:var(--p-soft)}
+.cur-opt.on b{color:var(--p)}
+.cur-opt .ic{color:var(--p);opacity:0}
+.cur-opt.on .ic{opacity:1}
+.cat-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cat-chips .chip{background:var(--bg);display:inline-flex;align-items:center;gap:5px}
+.cat-chips .chip .ic{width:16px;height:16px}
+.cat-chips .chip.on{background:var(--p);color:#fff}
+.amt-row{display:flex;gap:8px}
+.amt-row .inp{flex:1}
+.amt-row select{width:110px;flex:none}
+.detail-amt{font-size:32px;font-weight:800;letter-spacing:-.6px;margin:4px 0 2px}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px;gap:12px}
+.kv span{color:var(--mut);flex:none}
+.kv b{font-weight:600;text-align:right;word-break:break-word;white-space:pre-wrap}
+.toast{position:absolute;left:50%;bottom:30px;transform:translate(-50%,20px);background:var(--ink);color:#fff;font-size:14px;font-weight:600;padding:11px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60;max-width:86%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* =====================================================================
+   RESPONSIVE — mobile defaults for wrappers used by tablet/desktop
+   ===================================================================== */
+.stage{position:absolute;inset:0}
+.side{display:none}
+.wide-only{display:none!important}
+.main-left,.main-right,.tip-left,.budget-wrap,.costs,.note-left,.note-right{display:contents}
+.day small{display:none}
+.avatar.sm{width:38px;height:38px;font-size:15px}
+.avatar.sm .ic{width:20px;height:20px}
+
+/* =====================================================================
+   TABLET (≥768px) — icon rail + two-column screens
+   ===================================================================== */
+@media (min-width:768px){
+  body{display:block;padding:0;background:var(--bg)}
+  .app{max-width:none;height:100vh;height:100dvh;border-radius:0;box-shadow:none;display:flex}
+  .stage{position:relative;flex:1;min-width:0}
+  .wide-hide{display:none!important}
+  .wide-only{display:block!important}
+
+  /* sidebar rail */
+  .side{display:flex;flex-direction:column;flex:none;width:96px;background:#fff;border-right:1px solid var(--line);padding:18px 10px;gap:4px;z-index:5}
+  .side-brand{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;margin-bottom:14px;font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .side-brand .mark{width:38px;height:38px;border-radius:12px}
+  .side-brand .mark .ic{width:23px;height:23px}
+  .side-brand .brand-txt{display:none}
+  .side-brand b{color:var(--p)}
+  .nav{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px;border-radius:16px;color:var(--mut);font-size:11px;font-weight:600;line-height:1.25;text-align:center;transition:background .15s,color .15s,transform .1s}
+  .nav .ic{width:24px;height:24px}
+  .nav:hover{background:var(--p-softer);color:var(--p)}
+  .nav:active{transform:scale(.96)}
+  .nav.on{background:var(--p-soft);color:var(--p)}
+  .side .spacer{flex:1}
+  .side-user{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 4px;border-radius:16px;margin-top:6px;text-align:left;transition:background .15s}
+  .side-user:hover{background:var(--p-softer)}
+  .side-user .su-txt{display:none;min-width:0}
+  .side-user b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .side-user small{display:block;font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* screens: fade instead of slide */
+  .screen{transform:none!important;opacity:0;transition:opacity .22s ease,visibility 0s linear .22s}
+  .screen.active{opacity:1;transition:opacity .22s ease,visibility 0s}
+  .hdr{height:80px;padding:0 28px;justify-content:flex-start;gap:12px}
+  .hdr h1{font-size:24px;letter-spacing:-.4px}
+  .hdr h1.caps{font-size:24px;letter-spacing:-.4px;text-transform:none}
+  .hdr > :last-child{margin-left:auto}
+  .body{padding:0 28px 28px}
+
+  /* portrait tablet: stacked, centered column */
+  .main-body,.tip-body{padding:0 28px 28px;gap:12px;width:100%;max-width:720px;margin:0 auto}
+  .main-left{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .main-right{display:flex;flex-direction:column;flex:1;min-height:0}
+  .main-right .keypad{max-height:520px}
+  .tip-left{display:flex;flex-direction:column;gap:12px}
+  .tip-body > .keypad{max-height:520px}
+  .budget-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+  .budget-wrap .body{flex:1;width:100%;max-width:720px;margin:0 auto}
+  .budget-foot{width:calc(100% - 56px);max-width:664px;margin:0 auto 20px;border-radius:24px}
+  .note-body > div{max-width:720px;margin:0 auto}
+  .note-left,.note-right{display:block;min-width:0}
+  .rates,.foot-rows{display:none!important}
+  .main-left::-webkit-scrollbar{width:0}
+  .cv{padding:18px 20px 14px}
+  .cv-val{font-size:40px}
+  .rates{padding:14px 10px 8px}
+  .rates .label{padding:0 8px}
+  .rate-row{display:flex;align-items:center;gap:10px;width:100%;padding:10px 8px;border-radius:12px;text-align:left;transition:background .12s}
+  .rate-row:hover{background:var(--bg)}
+  .rate-row b{width:42px;font-size:14px}
+  .rate-row span{flex:1;font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rate-row strong{font-size:15px;font-weight:700;white-space:nowrap}
+  .rate-row.on{background:var(--p-soft)}
+  .rate-row.on strong{color:var(--p)}
+  .key{font-size:26px;border-radius:20px}
+
+  .tfield{padding:18px 18px}
+  .tfield strong{font-size:28px}
+  .tip-res{padding:20px 22px}
+  .tip-res .big{font-size:32px}
+
+  .budget-foot .tot{font-size:34px;margin-top:2px}
+  .foot-rows{margin-top:16px;border-top:1px solid var(--line);padding-top:6px}
+  .foot-rows .kv{border-top:0;padding:8px 0}
+  .foot-rows .kv:last-child{border-top:1px solid var(--line);margin-top:4px;padding-top:12px}
+  .cal-card{padding:16px 14px 14px}
+  .cal{gap:4px}
+  .day{aspect-ratio:auto;max-height:none;height:clamp(56px,8.5vh,96px);align-items:flex-start;justify-content:flex-start;padding:8px 9px;border-radius:14px;background:var(--bg)}
+  .day:hover{background:var(--p-softer)}
+  .day.other{background:transparent}
+  .day.has::after{display:none}
+  .day small{display:block;margin-top:auto;font-size:11px;font-weight:700;color:var(--p);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .day.sel small{color:#fff}
+
+  /* settings pages */
+  #s-settings .body,#s-lang .body,#s-account .body{max-width:720px}
+
+  /* sheet becomes a centered dialog */
+  .sheet{left:50%;right:auto;top:50%;bottom:auto;width:min(480px,calc(100% - 48px));max-height:86vh;border-radius:24px;padding:24px 26px;opacity:0;transform:translate(-50%,-46%);transition:transform .25s cubic-bezier(.2,.8,.2,1),opacity .2s}
+  .overlay.open .sheet{opacity:1;transform:translate(-50%,-50%)}
+  .grab{display:none}
+}
+
+/* =====================================================================
+   LANDSCAPE TABLET / LAPTOP (≥1024px) — two-column screens
+   ===================================================================== */
+@media (min-width:1024px){
+  .main-body,.tip-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;max-width:none;margin:0}
+  .main-left{overflow-y:auto}
+  .main-right .keypad,.tip-body > .keypad{max-height:640px;min-height:0}
+  .tip-left{gap:14px;min-height:0}
+  .rates{display:block!important}
+  .foot-rows{display:block!important}
+  .budget-wrap{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;padding:0 28px 28px}
+  .budget-wrap .body{padding:0 4px 0 0;max-width:none;margin:0}
+  .budget-foot{width:auto;max-width:none;margin:0;align-self:start;box-shadow:none;padding:22px}
+  .note-body{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:22px;align-items:start}
+  .note-body > div{max-width:none;margin:0}
+  .note-right{position:sticky;top:0}
+  .note-right .day-h{margin-top:4px}
+}
+
+/* =====================================================================
+   DESKTOP (≥1100px) — full sidebar, roomier grids
+   ===================================================================== */
+@media (min-width:1100px){
+  .side{width:252px;padding:24px 16px}
+  .side-brand{justify-content:flex-start;padding:0 8px}
+  .side-brand .brand-txt{display:inline}
+  .nav{flex-direction:row;gap:12px;padding:13px 14px;font-size:15px;text-align:left}
+  .nav .ic{width:22px;height:22px}
+  .side-user{justify-content:flex-start;padding:12px;background:var(--bg)}
+  .side-user .su-txt{display:block}
+  .hdr{padding:0 40px}
+  .body{padding:0 40px 32px}
+  .main-body,.tip-body{padding:0 40px 32px;gap:32px;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr)}
+  .main-right,.tip-body > .keypad{max-width:520px;width:100%;justify-self:end}
+  .main-right .keypad,.tip-body > .keypad{max-height:640px}
+  .budget-wrap{padding:0 40px 32px;grid-template-columns:minmax(0,1fr) 360px;gap:28px}
+  .note-body{gap:28px}
+}
+@media (min-width:1440px){
+  .costs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:10px}
+  .costs .cost{margin-top:0}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- ================= SIDEBAR (tablet / desktop only) ================= -->
+<nav class="side" aria-label="TerraCost">
+  <div class="side-brand"><span class="mark"><i data-ic="globe"></i></span><span class="brand-txt">Terra<b>Cost</b></span></div>
+  <button class="nav" data-go="main"><i data-ic="coinSwap"></i><span data-i18n="exchange"></span></button>
+  <button class="nav" data-go="note"><i data-ic="notebook"></i><span data-i18n="note"></span></button>
+  <button class="nav" data-go="budget"><i data-ic="luggage"></i><span data-i18n="budget"></span></button>
+  <button class="nav" data-go="tip"><i data-ic="coin"></i><span data-i18n="tip"></span></button>
+  <div class="spacer"></div>
+  <button class="nav" data-go="settings"><i data-ic="gear"></i><span data-i18n="settings"></span></button>
+  <button class="side-user" data-go="account"><span class="avatar sm" id="sideAvatar"></span><span class="su-txt"><b id="sideName"></b><small id="sideRate"></small></span></button>
+</nav>
+
+<div class="stage">
+<!-- ================= 1. MAIN : EXCHANGE CALCULATOR ================= -->
+<section class="screen" id="s-main">
+  <header class="hdr">
+    <button class="ibtn wide-hide" data-go="menu" data-i18n-aria="menu"><i data-ic="menu"></i></button>
+    <div class="brand wide-hide"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div>
+    <h1 class="wide-only" data-i18n="exchange"></h1>
+    <button class="ibtn wide-hide" data-go="settings" data-i18n-aria="settings"><i data-ic="gear"></i></button>
+  </header>
+  <div class="main-body">
+   <div class="main-left">
+    <div class="cv">
+      <div class="cv-top"><button class="cur-btn" id="fromBtn"></button><span class="cv-name" id="fromName"></span></div>
+      <div class="cv-val" id="exprView">0</div>
+      <div class="cv-sub" id="exprRes"></div>
+    </div>
+    <div class="swap-wrap"><button class="swap" id="swapBtn" aria-label="swap"><i data-ic="swap"></i></button></div>
+    <div class="cv">
+      <div class="cv-top"><button class="cur-btn" id="toBtn"></button><span class="cv-name" id="toName"></span></div>
+      <div class="cv-val blue" id="outView">0</div>
+      <div class="cv-sub" id="rateLine"></div>
+    </div>
+    <div class="rate-status"><span class="dot" id="rateDot"></span><span class="txt" id="rateText"></span><button class="ibtn sm" id="rateRefresh" aria-label="refresh"><i data-ic="refresh"></i></button></div>
+    <div class="card rates wide-only"><p class="label" data-i18n="otherCurrencies"></p><div id="ratesList"></div></div>
+   </div>
+   <div class="main-right"><div class="keypad" id="mainPad"></div></div>
+  </div>
+</section>
+
+<!-- ================= 2. MENU ================= -->
+<section class="screen" id="s-menu">
+  <header class="hdr">
+    <button class="ibtn" data-back data-i18n-aria="close"><i data-ic="x"></i></button>
+    <h1 class="caps" data-i18n="menu"></h1>
+    <span class="ibtn placeholder"></span>
+  </header>
+  <div class="body">
+    <div class="menu-list">
+      <button class="m-item" data-go="note" data-tool="note"><span class="m-ic"><i data-ic="notebook"></i></span><span><b data-i18n="note"></b><small data-i18n="noteDesc"></small></span><i data-ic="chevR" class="chev"></i></button>
+      <button class="m-item" data-go="budget" data-tool="budget"><span class="m-ic"><i data-ic="luggage"></i></span><span><b data-i18n="budget"></b><small data-i18n="budgetDesc"></small></span><i data-ic="chevR" class="chev"></i></button>
+      <button class="m-item" data-go="tip" data-tool="tip"><span class="m-ic"><i data-ic="coin"></i></span><span><b data-i18n="tip"></b><small data-i18n="tipDesc"></small></span><i data-ic="chevR" class="chev"></i></button>
+    </div>
+  </div>
+  <div class="menu-foot"><div class="brand"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div><span data-i18n="appSub"></span></div>
+</section>
+
+<!-- ================= 3. TIP ================= -->
+<section class="screen" id="s-tip">
+  <header class="hdr">
+    <button class="ibtn wide-hide" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 data-i18n="tip"></h1>
+    <span class="ibtn placeholder"></span>
+  </header>
+  <div class="tip-body">
+   <div class="tip-left">
+    <select class="sel" id="tipCountry" data-i18n-aria="country"></select>
+    <div class="card" style="padding:10px">
+      <button class="tfield" data-field="amount"><span data-i18n="billAmount"></span><strong id="tipAmountView"></strong></button>
+      <button class="tfield" data-field="rate"><span data-i18n="tipRate"></span><strong id="tipRateView"></strong></button>
+    </div>
+    <div class="chips" id="tipChips"></div>
+    <div class="tip-res">
+      <div class="row"><span data-i18n="tipAmount"></span><b class="mid" id="tipOut"></b></div>
+      <div class="row"><span data-i18n="finalAmount"></span><b class="big" id="tipTotal"></b></div>
+    </div>
+   </div>
+    <div class="keypad" id="tipPad"></div>
+  </div>
+</section>
+
+<!-- ================= 4. BUDGET ================= -->
+<section class="screen" id="s-budget">
+  <header class="hdr">
+    <button class="ibtn wide-hide" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 data-i18n="budget"></h1>
+    <button class="ibtn" id="budgetReset" data-i18n-aria="reset"><i data-ic="refresh"></i></button>
+  </header>
+  <div class="budget-wrap">
+  <div class="body">
+    <div class="grid2">
+      <div><p class="label" data-i18n="country"></p><select class="sel" id="bCountry"></select></div>
+      <div><p class="label" data-i18n="city"></p><select class="sel" id="bCity"></select></div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div><p class="label" data-i18n="startDate"></p><input type="date" class="inp" id="bStart"></div>
+      <div><p class="label" data-i18n="endDate"></p><input type="date" class="inp" id="bEnd"></div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <span class="badge"><i data-ic="calendar"></i><span id="bLength"></span></span>
+      <button class="btn soft" style="height:34px;font-size:13px;padding:0 12px" id="bFill"><i data-ic="sparkle"></i><span data-i18n="fillAvg"></span></button>
+    </div>
+    <p class="err" id="bDateErr"></p>
+
+    <div class="costs">
+    <div class="cost">
+      <div class="cost-h"><span class="cost-ic"><i data-ic="bed"></i></span><div><b data-i18n="lodging"></b><small data-i18n="perNight"></small></div><span class="cost-sub" id="subLodging"></span></div>
+      <div class="cost-in">
+        <label class="fld"><small data-i18n="perNight"></small><span class="wrap"><span class="csym"></span><input id="bLodging" inputmode="decimal" autocomplete="off"></span></label>
+        <span class="times">×</span>
+        <div class="qty ro"><small data-i18n="nightsUnit"></small><span class="wrap" id="qNights">0</span></div>
+      </div>
+    </div>
+    <div class="cost">
+      <div class="cost-h"><span class="cost-ic"><i data-ic="burger"></i></span><div><b data-i18n="food"></b><small data-i18n="perMeal"></small></div><span class="cost-sub" id="subFood"></span></div>
+      <div class="cost-in">
+        <label class="fld"><small data-i18n="perMeal"></small><span class="wrap"><span class="csym"></span><input id="bFood" inputmode="decimal" autocomplete="off"></span></label>
+        <span class="times">×</span>
+        <label class="qty"><small data-i18n="mealsPerDay"></small><span class="wrap"><input id="bMeals" inputmode="numeric" autocomplete="off"></span></label>
+        <span class="times">×</span>
+        <div class="qty ro"><small data-i18n="days"></small><span class="wrap" id="qDays1">0</span></div>
+      </div>
+    </div>
+    <div class="cost">
+      <div class="cost-h"><span class="cost-ic"><i data-ic="train"></i></span><div><b data-i18n="transport"></b><small data-i18n="perKm"></small></div><span class="cost-sub" id="subTrans"></span></div>
+      <div class="cost-in">
+        <label class="fld"><small data-i18n="perKm"></small><span class="wrap"><span class="csym"></span><input id="bTrans" inputmode="decimal" autocomplete="off"></span></label>
+        <span class="times">×</span>
+        <label class="qty"><small data-i18n="kmPerDay"></small><span class="wrap"><input id="bKm" inputmode="decimal" autocomplete="off"></span></label>
+        <span class="times">×</span>
+        <div class="qty ro"><small data-i18n="days"></small><span class="wrap" id="qDays2">0</span></div>
+      </div>
+    </div>
+    <div class="cost">
+      <div class="cost-h"><span class="cost-ic"><i data-ic="receipt"></i></span><div><b data-i18n="extra"></b><small data-i18n="extraDesc"></small></div><span class="cost-sub" id="subExtra"></span></div>
+      <div id="extraList"></div>
+      <button class="add-line" id="addExtra"><i data-ic="plus"></i><span data-i18n="addItem"></span></button>
+    </div>
+    </div>
+  </div>
+  <div class="budget-foot">
+    <div class="row"><span class="muted" style="font-size:13px;font-weight:600" data-i18n="total"></span><span class="muted" style="font-size:13px" id="bApprox"></span></div>
+    <div class="tot" id="bTotal"></div>
+    <div class="bar" id="bBar"></div>
+    <div class="legend" id="bLegend"></div>
+    <div class="wide-only foot-rows" id="bRows"></div>
+  </div>
+  </div>
+</section>
+
+<!-- ================= 5. NOTE ================= -->
+<section class="screen" id="s-note">
+  <header class="hdr">
+    <button class="ibtn wide-hide" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 data-i18n="note"></h1>
+    <button class="ibtn blue" id="noteAdd" data-i18n-aria="addRecord"><i data-ic="plus"></i></button>
+  </header>
+  <div class="body note-body">
+   <div class="note-left">
+    <div class="trip">
+      <div class="t-l"><small data-i18n="destination"></small><b id="tripName"></b></div>
+      <div class="t-r"><small data-i18n="monthTotal"></small><b id="monthTotal"></b></div>
+    </div>
+    <div class="cal-card">
+      <div class="cal-nav">
+        <button class="ibtn sm" id="calPrev" aria-label="previous month"><i data-ic="chevL"></i></button>
+        <b id="calTitle"></b>
+        <button class="ibtn sm" id="calNext" aria-label="next month"><i data-ic="chevR"></i></button>
+      </div>
+      <div class="cal" id="cal"></div>
+    </div>
+   </div>
+   <div class="note-right">
+    <div class="day-h"><b id="dayTitle"></b><span class="muted" style="font-size:13px" id="dayTotal"></span></div>
+    <div id="dayList"></div>
+    <button class="btn primary block" style="margin-top:12px" id="noteAdd2"><i data-ic="plus"></i><span data-i18n="addRecord"></span></button>
+   </div>
+  </div>
+</section>
+
+<!-- ================= 6. SETTINGS ================= -->
+<section class="screen" id="s-settings">
+  <header class="hdr">
+    <button class="ibtn wide-hide" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 class="caps" data-i18n="settings"></h1>
+    <span class="ibtn placeholder"></span>
+  </header>
+  <div class="body">
+    <div class="list" style="margin-top:8px">
+      <button class="li" data-go="lang"><span class="li-ic"><i data-ic="globe"></i></span><b data-i18n="language"></b><span class="val" id="setLangVal"></span><i data-ic="chevR" class="chev"></i></button>
+      <button class="li" data-go="account"><span class="li-ic"><i data-ic="user"></i></span><b data-i18n="account"></b><span class="val" id="setAccVal"></span><i data-ic="chevR" class="chev"></i></button>
+    </div>
+    <div class="foot-note"><div class="brand"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div><span><span data-i18n="version"></span> 1.0.0</span></div>
+  </div>
+</section>
+
+<!-- ===== 6-1. LANGUAGE ===== -->
+<section class="screen" id="s-lang">
+  <header class="hdr">
+    <button class="ibtn" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 data-i18n="language"></h1>
+    <span class="ibtn placeholder"></span>
+  </header>
+  <div class="body"><div class="list" id="langList" style="margin-top:8px"></div></div>
+</section>
+
+<!-- ===== 6-2. ACCOUNT ===== -->
+<section class="screen" id="s-account">
+  <header class="hdr">
+    <button class="ibtn" data-back aria-label="back"><i data-ic="arrowL"></i></button>
+    <h1 data-i18n="account"></h1>
+    <span class="ibtn placeholder"></span>
+  </header>
+  <div class="body">
+    <div class="card row" style="justify-content:flex-start;gap:14px;margin-top:8px">
+      <div class="avatar" id="avatar"></div>
+      <div style="min-width:0"><b style="font-size:18px;display:block" id="accName"></b><span class="muted" style="font-size:13px" data-i18n="guestDesc"></span></div>
+    </div>
+    <p class="sec-t" data-i18n="profile"></p>
+    <div class="card">
+      <p class="label" data-i18n="nickname"></p>
+      <input class="inp" id="accNick" maxlength="20" autocomplete="off">
+      <p class="label" style="margin-top:12px" data-i18n="homeCurrency"></p>
+      <select class="sel" id="accHome"></select>
+    </div>
+    <button class="btn primary block" style="margin-top:12px" id="loginBtn"><i data-ic="user"></i><span data-i18n="login"></span></button>
+    <p class="muted" style="font-size:12px;text-align:center;margin:8px 10px 0" data-i18n="accountDesc"></p>
+    <p class="sec-t" data-i18n="data"></p>
+    <div class="card row"><span id="accRecords"></span><button class="btn danger" style="height:38px;font-size:13px" id="resetAll"><i data-ic="trash"></i><span data-i18n="resetData"></span></button></div>
+  </div>
+</section>
+
+</div><!-- /stage -->
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+"use strict";
+/* =====================================================================
+   0. Helpers
+   ===================================================================== */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pad2 = n => String(n).padStart(2, "0");
+const ymd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const parseYmd = s => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); if (!m) return null; const d = new Date(+m[1], +m[2] - 1, +m[3]); return isNaN(d) ? null : d; };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+function cleanNum(s, allowDot = true) {
+  s = String(s).replace(allowDot ? /[^\d.]/g : /\D/g, "");
+  const i = s.indexOf(".");
+  if (i >= 0) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, "");
+  return s.slice(0, 14);
+}
+
+/* =====================================================================
+   1. Store (LocalStorage, safe)
+   ===================================================================== */
+const store = {
+  get(k, def) { try { const v = localStorage.getItem("tc." + k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem("tc." + k, JSON.stringify(v)); } catch (e) {} },
+  clear() { try { Object.keys(localStorage).filter(k => k.startsWith("tc.") && k !== "tc.lang").forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+};
+
+/* =====================================================================
+   2. Icons & flags (inline SVG — works offline)
+   ===================================================================== */
+const ICONS = {
+  menu: '<path d="M4 6h16M4 12h16M4 18h16"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  arrowL: '<path d="M5 12h14M5 12l6 6M5 12l6-6"/>',
+  chevD: '<path d="M6 9l6 6 6-6"/>',
+  chevR: '<path d="M9 6l6 6-6 6"/>',
+  chevL: '<path d="M15 6l-6 6 6 6"/>',
+  swap: '<path d="M7 3v18M4 6l3-3 3 3M17 21V3M14 18l3 3 3-3"/>',
+  backspace: '<path d="M20 6H9l-6 6 6 6h11a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1zM12 10l4 4m0-4-4 4"/>',
+  refresh: '<path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>',
+  gear: '<path d="M10.3 4.3c.4-1.8 2.9-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 0 0 1 2.5c1.8.4 1.8 2.9 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-2.9 1.8-3.4 0a1.7 1.7 0 0 0-2.6-1c-1.5.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1-2.6c-1.8-.4-1.8-2.9 0-3.4a1.7 1.7 0 0 0 1-2.5c-.9-1.6.9-3.3 2.4-2.4a1.7 1.7 0 0 0 2.6-1.1z"/><circle cx="12" cy="12" r="3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>',
+  notebook: '<path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 4v16M12 8h4M12 12h4"/>',
+  luggage: '<rect x="6" y="7" width="12" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M10 20v1M14 20v1M10 11v5M14 11v5"/>',
+  coinSwap: '<circle cx="8" cy="8" r="5"/><circle cx="16" cy="16" r="5"/><path d="M15 4h3a2 2 0 0 1 2 2v3M9 20H6a2 2 0 0 1-2-2v-3"/>',
+  coin: '<circle cx="12" cy="12" r="9"/><path d="M14.8 9a2 1.8 0 0 0-1.8-1h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1M12 6.5v11"/>',
+  bed: '<path d="M3 7v11M3 14h18M21 18v-6a2 2 0 0 0-2-2h-8v4"/><circle cx="7" cy="10.5" r="1.8"/>',
+  burger: '<path d="M5 10.5c0-3 3.1-5.5 7-5.5s7 2.5 7 5.5zM4 14h16M5 17h14v.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 5 17.5z"/>',
+  train: '<rect x="6" y="3" width="12" height="13" rx="3"/><path d="M6 10h12M9 13h.01M15 13h.01M8.5 20l2-4M15.5 20l-2-4"/>',
+  receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/>',
+  edit: '<path d="M4 20h4L18.5 9.5a2.8 2.8 0 0 0-4-4L4 16v4M13.5 6.5l4 4"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>',
+  star: '<path d="M12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1L12 2l3.1 6.2 6.9 1-5 4.9 1.2 6.9z"/>',
+  check: '<path d="M5 12l5 5L20 7"/>',
+  calendar: '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/>',
+  sparkle: '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/>',
+  food: '<path d="M7 3v18M4 3v5a3 3 0 0 0 6 0V3M17 21V3c-2 1.5-3 4-3 8h3"/>',
+  camera: '<path d="M5 7h1a2 2 0 0 0 2-2 1 1 0 0 1 1-1h6a1 1 0 0 1 1 1 2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2"/><circle cx="12" cy="13" r="3"/>',
+  bag: '<path d="M6.3 8h11.4a2 2 0 0 1 2 2.3l-1.3 8a2 2 0 0 1-2 1.7H7.6a2 2 0 0 1-2-1.7l-1.3-8A2 2 0 0 1 6.3 8zM9 11V6a3 3 0 0 1 6 0v5"/>',
+  dots: '<circle cx="12" cy="12" r="9"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>',
+  empty: '<path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 9h6M9 13h4"/>'
+};
+const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ""}</svg>`;
+function hydrateIcons(root = document) {
+  $$("i[data-ic]", root).forEach(el => {
+    const tmp = document.createElement("span"); tmp.innerHTML = ic(el.dataset.ic, el.className);
+    el.replaceWith(tmp.firstChild);
+  });
+}
+function starPts(cx, cy, r) {
+  const p = []; for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * .4 : r; p.push((cx + rr * Math.cos(a)).toFixed(2) + "," + (cy + rr * Math.sin(a)).toFixed(2)); } return p.join(" ");
+}
+const FLAGS = {
+  KR: '<rect width="30" height="20" fill="#fff"/><path d="M10 10a5 5 0 0 1 10 0z" fill="#CD2E3A"/><path d="M10 10a5 5 0 0 0 10 0z" fill="#0047A0"/><circle cx="12.5" cy="10" r="2.5" fill="#CD2E3A"/><circle cx="17.5" cy="10" r="2.5" fill="#0047A0"/><g stroke="#000" stroke-width="1"><path d="M3.5 6.5 6.5 3M4.7 7.4 7.7 3.9M5.9 8.3 8.9 4.8M26.5 6.5 23.5 3M25.3 7.4 22.3 3.9M24.1 8.3 21.1 4.8M3.5 13.5 6.5 17M4.7 12.6 7.7 16.1M5.9 11.7 8.9 15.2M26.5 13.5 23.5 17M25.3 12.6 22.3 16.1M24.1 11.7 21.1 15.2"/></g>',
+  US: (() => { let s = '<rect width="30" height="20" fill="#B22234"/>'; for (let i = 1; i < 13; i += 2) s += `<rect y="${(i * 20 / 13).toFixed(2)}" width="30" height="${(20 / 13).toFixed(2)}" fill="#fff"/>`; return s + '<rect width="13" height="10.77" fill="#3C3B6E"/>'; })(),
+  JP: '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#BC002D"/>',
+  EU: (() => { let s = '<rect width="30" height="20" fill="#003399"/>'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; s += `<circle cx="${(15 + 6 * Math.cos(a)).toFixed(2)}" cy="${(10 + 6 * Math.sin(a)).toFixed(2)}" r=".9" fill="#FFCC00"/>`; } return s; })(),
+  GB: '<rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0 0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0 0 20" stroke="#C8102E" stroke-width="1.4"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/>',
+  CN: `<rect width="30" height="20" fill="#DE2910"/><polygon points="${starPts(6, 6, 3.2)}" fill="#FFDE00"/><polygon points="${starPts(11, 2.6, 1)}" fill="#FFDE00"/><polygon points="${starPts(13, 4.8, 1)}" fill="#FFDE00"/><polygon points="${starPts(13, 7.8, 1)}" fill="#FFDE00"/><polygon points="${starPts(11, 10, 1)}" fill="#FFDE00"/>`,
+  TH: '<rect width="30" height="20" fill="#A51931"/><rect y="3.33" width="30" height="13.34" fill="#F4F5F8"/><rect y="6.67" width="30" height="6.66" fill="#2D2A4A"/>',
+  VN: `<rect width="30" height="20" fill="#DA251D"/><polygon points="${starPts(15, 10.4, 5.4)}" fill="#FFFF00"/>`
+};
+const flag = c => `<svg class="flag" viewBox="0 0 30 20" aria-hidden="true">${FLAGS[c] || ""}</svg>`;
+
+/* =====================================================================
+   3. Data: countries, currencies, sample rates, averages
+   ===================================================================== */
+const COUNTRIES = [
+  { code: "KR", cur: "KRW", avg: [120000, 5500, 1100], cities: [["서울", "Seoul", "ソウル", "首尔"], ["부산", "Busan", "釜山", "釜山"], ["제주", "Jeju", "済州", "济州"]] },
+  { code: "US", cur: "USD", avg: [220, 5.7, 2.5], cities: [["뉴욕", "New York", "ニューヨーク", "纽约"], ["로스앤젤레스", "Los Angeles", "ロサンゼルス", "洛杉矶"], ["샌프란시스코", "San Francisco", "サンフランシスコ", "旧金山"], ["하와이", "Hawaii", "ハワイ", "夏威夷"]] },
+  { code: "JP", cur: "JPY", avg: [15000, 480, 400], cities: [["도쿄", "Tokyo", "東京", "东京"], ["오사카", "Osaka", "大阪", "大阪"], ["후쿠오카", "Fukuoka", "福岡", "福冈"], ["삿포로", "Sapporo", "札幌", "札幌"]] },
+  { code: "EU", cur: "EUR", avg: [150, 5.3, 2.2], cities: [["파리", "Paris", "パリ", "巴黎"], ["로마", "Rome", "ローマ", "罗马"], ["바르셀로나", "Barcelona", "バルセロナ", "巴塞罗那"], ["베를린", "Berlin", "ベルリン", "柏林"]] },
+  { code: "GB", cur: "GBP", avg: [160, 4.5, 2.4], cities: [["런던", "London", "ロンドン", "伦敦"], ["에든버러", "Edinburgh", "エディンバラ", "爱丁堡"], ["맨체스터", "Manchester", "マンチェスター", "曼彻斯特"]] },
+  { code: "CN", cur: "CNY", avg: [500, 25, 3], cities: [["베이징", "Beijing", "北京", "北京"], ["상하이", "Shanghai", "上海", "上海"], ["칭다오", "Qingdao", "青島", "青岛"]] },
+  { code: "TH", cur: "THB", avg: [1800, 140, 8], cities: [["방콕", "Bangkok", "バンコク", "曼谷"], ["푸껫", "Phuket", "プーケット", "普吉"], ["치앙마이", "Chiang Mai", "チェンマイ", "清迈"]] },
+  { code: "VN", cur: "VND", avg: [900000, 75000, 15000], cities: [["다낭", "Da Nang", "ダナン", "岘港"], ["하노이", "Hanoi", "ハノイ", "河内"], ["호찌민", "Ho Chi Minh City", "ホーチミン", "胡志明市"], ["나트랑", "Nha Trang", "ニャチャン", "芽庄"]] }
+];
+const CURRENCIES = COUNTRIES.map(c => c.cur);
+const curCountry = cur => (COUNTRIES.find(c => c.cur === cur) || COUNTRIES[0]).code;
+const countryOf = code => COUNTRIES.find(c => c.code === code) || COUNTRIES[0];
+const SAMPLE_RATES = { USD: 1, KRW: 1380, JPY: 152, EUR: 0.92, GBP: 0.78, CNY: 7.2, THB: 35, VND: 25400 };
+const ZERO_DEC = ["KRW", "JPY", "VND"];
+const CATS = [
+  { id: "food", ic: "food" }, { id: "stay", ic: "bed" }, { id: "transport", ic: "train" },
+  { id: "sight", ic: "camera" }, { id: "shop", ic: "bag" }, { id: "etc", ic: "dots" }
+];
+
+/* =====================================================================
+   4. i18n — 7 languages
+   ===================================================================== */
+const LANGS = [
+  { id: "ko", name: "한국어", en: "Korean", loc: "ko-KR" },
+  { id: "en", name: "English", en: "English", loc: "en-US" },
+  { id: "ja", name: "日本語", en: "Japanese", loc: "ja-JP" },
+  { id: "zh", name: "中文", en: "Chinese", loc: "zh-CN" },
+  { id: "es", name: "Español", en: "Spanish", loc: "es-ES" },
+  { id: "fr", name: "Français", en: "French", loc: "fr-FR" },
+  { id: "de", name: "Deutsch", en: "German", loc: "de-DE" }
+];
+const I18N = {
+ko: {
+  appSub: "여행 비용 매니저", exchange: "환율 계산기", otherCurrencies: "다른 통화로 보기", perDay: "1일 평균", menu: "Menu", note: "여행 지출 노트", budget: "여행 경비 계산", tip: "팁 계산", settings: "Setting", language: "언어", account: "계정",
+  noteDesc: "달력으로 날짜별 지출 기록", budgetDesc: "숙박비 · 식비 · 교통비 합계", tipDesc: "팁과 최종 결제 금액 계산",
+  liveRate: "실시간 환율", sampleRate: "샘플 환율 사용 중", updated: "업데이트", selectCurrency: "통화 선택", calcError: "계산할 수 없는 식이에요",
+  country: "국가", city: "도시", billAmount: "결제 금액", tipRate: "팁 비율", tipAmount: "팁 금액", finalAmount: "최종 금액",
+  startDate: "시작일", endDate: "종료일", tripLength: "{n}박 {d}일", dateError: "종료일이 시작일보다 빠를 수 없어요. 날짜를 다시 확인하세요.",
+  lodging: "숙박비", food: "식비", transport: "교통비", perNight: "1박 기준", perMeal: "1끼 기준 (빅맥)", perKm: "1km 기준",
+  nightsUnit: "박", days: "일", mealsPerDay: "하루 끼니", kmPerDay: "하루 km", extra: "기타 지출", extraDesc: "입장료, 쇼핑 등 항목별 추가", addItem: "항목 추가", itemName: "항목명", amount: "금액",
+  total: "총 여행 비용", fillAvg: "평균값 채우기", reset: "초기화", confirmResetBudget: "입력한 여행 경비를 모두 지울까요?", filled: "도시 평균값을 채웠어요",
+  monthTotal: "이번 달 지출", addRecord: "기록 추가", editRecord: "기록 수정", recordDetail: "지출 상세", date: "날짜", title: "제목", category: "카테고리", memo: "메모", memoPh: "메모를 남겨보세요", titlePh: "예: 점심 식사",
+  save: "저장", cancel: "취소", delete: "삭제", edit: "수정", close: "닫기", confirm: "확인",
+  emptyDay: "이 날의 지출 기록이 없어요", emptyHint: "기록 추가 버튼으로 지출을 남겨보세요",
+  cat_food: "식비", cat_stay: "숙박", cat_transport: "교통", cat_sight: "관광", cat_shop: "쇼핑", cat_etc: "기타",
+  weekdays: "일,월,화,수,목,금,토", items: "{n}건",
+  titleRequired: "제목을 입력하세요", amountRequired: "0보다 큰 금액을 입력하세요", dateInvalid: "올바른 날짜를 선택하세요", saved: "저장했어요", deleted: "삭제했어요", confirmDelete: "이 지출 기록을 삭제할까요?",
+  destination: "여행지", guest: "게스트", guestDesc: "로그인하지 않은 상태", nickname: "닉네임", homeCurrency: "기본 통화", login: "로그인", loginSoon: "로그인 기능은 준비 중이에요", accountDesc: "로그인하면 여러 기기에서 기록을 동기화할 수 있어요. (추후 지원 예정)",
+  profile: "프로필", data: "데이터", records: "지출 기록 {n}건", resetData: "데이터 초기화", confirmReset: "저장된 모든 기록과 설정을 삭제할까요? 되돌릴 수 없어요.", resetDone: "초기화했어요",
+  langChanged: "한국어로 변경했어요", version: "버전", ratesUpdated: "환율을 업데이트했어요", ratesFailed: "환율을 불러오지 못해 샘플 환율을 사용해요", nickSaved: "닉네임을 저장했어요"
+},
+en: {
+  appSub: "Travel cost manager", exchange: "Currency converter", otherCurrencies: "Other currencies", perDay: "Per day", menu: "Menu", note: "Travel expense note", budget: "Trip budget", tip: "Tip calculator", settings: "Setting", language: "Language", account: "Account",
+  noteDesc: "Log spending by date on a calendar", budgetDesc: "Lodging, food and transport total", tipDesc: "Tip and final amount to pay",
+  liveRate: "Live rate", sampleRate: "Using sample rates", updated: "Updated", selectCurrency: "Select currency", calcError: "Can't calculate this expression",
+  country: "Country", city: "City", billAmount: "Bill amount", tipRate: "Tip rate", tipAmount: "Tip", finalAmount: "Total to pay",
+  startDate: "Start", endDate: "End", tripLength: "{n} nights · {d} days", dateError: "The end date can't be before the start date. Check your dates.",
+  lodging: "Lodging", food: "Food", transport: "Transport", perNight: "Per night", perMeal: "Per meal (Big Mac)", perKm: "Per km",
+  nightsUnit: "Nights", days: "Days", mealsPerDay: "Meals/day", kmPerDay: "km/day", extra: "Other costs", extraDesc: "Tickets, shopping and more", addItem: "Add item", itemName: "Item", amount: "Amount",
+  total: "Total trip cost", fillAvg: "Fill averages", reset: "Reset", confirmResetBudget: "Clear all trip budget entries?", filled: "City averages filled in",
+  monthTotal: "This month", addRecord: "Add record", editRecord: "Edit record", recordDetail: "Expense detail", date: "Date", title: "Title", category: "Category", memo: "Memo", memoPh: "Add a note", titlePh: "Lunch",
+  save: "Save", cancel: "Cancel", delete: "Delete", edit: "Edit", close: "Close", confirm: "Confirm",
+  emptyDay: "No expenses on this day", emptyHint: "Use Add record to log one",
+  cat_food: "Food", cat_stay: "Stay", cat_transport: "Transport", cat_sight: "Sightseeing", cat_shop: "Shopping", cat_etc: "Other",
+  weekdays: "Sun,Mon,Tue,Wed,Thu,Fri,Sat", items: "{n} items",
+  titleRequired: "Enter a title", amountRequired: "Enter an amount above 0", dateInvalid: "Pick a valid date", saved: "Saved", deleted: "Deleted", confirmDelete: "Delete this expense?",
+  destination: "Destination", guest: "Guest", guestDesc: "Not logged in", nickname: "Nickname", homeCurrency: "Home currency", login: "Log in", loginSoon: "Log in is coming soon", accountDesc: "Log in to sync your records across devices. (Coming soon)",
+  profile: "Profile", data: "Data", records: "{n} expense records", resetData: "Reset data", confirmReset: "Delete all records and settings? This can't be undone.", resetDone: "All data reset",
+  langChanged: "Language set to English", version: "Version", ratesUpdated: "Rates updated", ratesFailed: "Couldn't load rates. Using sample rates.", nickSaved: "Nickname saved"
+},
+ja: {
+  appSub: "旅行費用マネージャー", exchange: "為替計算機", otherCurrencies: "他の通貨で見る", perDay: "1日平均", menu: "Menu", note: "旅行支出ノート", budget: "旅行費用計算", tip: "チップ計算", settings: "Setting", language: "言語", account: "アカウント",
+  noteDesc: "カレンダーで日別に支出を記録", budgetDesc: "宿泊・食費・交通費の合計", tipDesc: "チップと支払総額を計算",
+  liveRate: "リアルタイム為替", sampleRate: "サンプルレート使用中", updated: "更新", selectCurrency: "通貨を選択", calcError: "計算できない式です",
+  country: "国", city: "都市", billAmount: "支払金額", tipRate: "チップ率", tipAmount: "チップ", finalAmount: "支払総額",
+  startDate: "開始日", endDate: "終了日", tripLength: "{n}泊{d}日", dateError: "終了日を開始日より前にはできません。日付を確認してください。",
+  lodging: "宿泊費", food: "食費", transport: "交通費", perNight: "1泊あたり", perMeal: "1食あたり(ビッグマック)", perKm: "1kmあたり",
+  nightsUnit: "泊", days: "日", mealsPerDay: "1日の食事", kmPerDay: "1日のkm", extra: "その他の費用", extraDesc: "入場料・買い物など", addItem: "項目を追加", itemName: "項目名", amount: "金額",
+  total: "旅行費用合計", fillAvg: "平均値を入力", reset: "リセット", confirmResetBudget: "入力した旅行費用をすべて消去しますか?", filled: "都市の平均値を入力しました",
+  monthTotal: "今月の支出", addRecord: "記録を追加", editRecord: "記録を編集", recordDetail: "支出の詳細", date: "日付", title: "タイトル", category: "カテゴリー", memo: "メモ", memoPh: "メモを残す", titlePh: "ランチ",
+  save: "保存", cancel: "キャンセル", delete: "削除", edit: "編集", close: "閉じる", confirm: "確認",
+  emptyDay: "この日の支出記録はありません", emptyHint: "「記録を追加」から支出を記録しましょう",
+  cat_food: "食費", cat_stay: "宿泊", cat_transport: "交通", cat_sight: "観光", cat_shop: "ショッピング", cat_etc: "その他",
+  weekdays: "日,月,火,水,木,金,土", items: "{n}件",
+  titleRequired: "タイトルを入力してください", amountRequired: "0より大きい金額を入力してください", dateInvalid: "正しい日付を選択してください", saved: "保存しました", deleted: "削除しました", confirmDelete: "この支出記録を削除しますか?",
+  destination: "旅行先", guest: "ゲスト", guestDesc: "未ログイン", nickname: "ニックネーム", homeCurrency: "基本通貨", login: "ログイン", loginSoon: "ログイン機能は準備中です", accountDesc: "ログインすると複数の端末で記録を同期できます。(今後対応予定)",
+  profile: "プロフィール", data: "データ", records: "支出記録 {n}件", resetData: "データ初期化", confirmReset: "保存されたすべての記録と設定を削除しますか?元に戻せません。", resetDone: "初期化しました",
+  langChanged: "日本語に変更しました", version: "バージョン", ratesUpdated: "為替を更新しました", ratesFailed: "為替を取得できないため、サンプルレートを使用します", nickSaved: "ニックネームを保存しました"
+},
+zh: {
+  appSub: "旅行费用管家", exchange: "汇率计算器", otherCurrencies: "其他货币", perDay: "日均", menu: "Menu", note: "旅行支出笔记", budget: "旅行费用计算", tip: "小费计算", settings: "Setting", language: "语言", account: "账户",
+  noteDesc: "用日历按日期记录支出", budgetDesc: "住宿、餐饮、交通费合计", tipDesc: "计算小费与最终金额",
+  liveRate: "实时汇率", sampleRate: "正在使用示例汇率", updated: "更新于", selectCurrency: "选择货币", calcError: "无法计算该算式",
+  country: "国家", city: "城市", billAmount: "消费金额", tipRate: "小费比例", tipAmount: "小费", finalAmount: "最终金额",
+  startDate: "开始日期", endDate: "结束日期", tripLength: "{n}晚{d}天", dateError: "结束日期不能早于开始日期,请检查日期。",
+  lodging: "住宿费", food: "餐饮费", transport: "交通费", perNight: "每晚", perMeal: "每餐(巨无霸)", perKm: "每公里",
+  nightsUnit: "晚", days: "天", mealsPerDay: "每日餐数", kmPerDay: "每日公里", extra: "其他费用", extraDesc: "门票、购物等", addItem: "添加项目", itemName: "项目名称", amount: "金额",
+  total: "旅行总费用", fillAvg: "填入平均值", reset: "重置", confirmResetBudget: "要清除所有旅行费用吗?", filled: "已填入城市平均值",
+  monthTotal: "本月支出", addRecord: "添加记录", editRecord: "编辑记录", recordDetail: "支出详情", date: "日期", title: "标题", category: "类别", memo: "备注", memoPh: "写点备注", titlePh: "午餐",
+  save: "保存", cancel: "取消", delete: "删除", edit: "编辑", close: "关闭", confirm: "确认",
+  emptyDay: "这一天没有支出记录", emptyHint: "点击“添加记录”来记一笔",
+  cat_food: "餐饮", cat_stay: "住宿", cat_transport: "交通", cat_sight: "观光", cat_shop: "购物", cat_etc: "其他",
+  weekdays: "日,一,二,三,四,五,六", items: "{n}条",
+  titleRequired: "请输入标题", amountRequired: "请输入大于0的金额", dateInvalid: "请选择正确的日期", saved: "已保存", deleted: "已删除", confirmDelete: "要删除这条支出记录吗?",
+  destination: "目的地", guest: "访客", guestDesc: "未登录", nickname: "昵称", homeCurrency: "本国货币", login: "登录", loginSoon: "登录功能即将推出", accountDesc: "登录后可在多台设备间同步记录。(即将支持)",
+  profile: "个人资料", data: "数据", records: "支出记录 {n} 条", resetData: "重置数据", confirmReset: "要删除所有记录和设置吗?此操作无法撤销。", resetDone: "已重置",
+  langChanged: "已切换为中文", version: "版本", ratesUpdated: "汇率已更新", ratesFailed: "无法获取汇率,使用示例汇率", nickSaved: "昵称已保存"
+},
+es: {
+  appSub: "Gestor de gastos de viaje", exchange: "Conversor de divisas", otherCurrencies: "Otras divisas", perDay: "Por día", menu: "Menú", note: "Notas de gastos", budget: "Presupuesto de viaje", tip: "Propinas", settings: "Ajustes", language: "Idioma", account: "Cuenta",
+  noteDesc: "Registra gastos por fecha en un calendario", budgetDesc: "Total de alojamiento, comida y transporte", tipDesc: "Propina e importe final",
+  liveRate: "Tipo en vivo", sampleRate: "Usando tipos de ejemplo", updated: "Actualizado", selectCurrency: "Elegir divisa", calcError: "No se puede calcular esta expresión",
+  country: "País", city: "Ciudad", billAmount: "Importe", tipRate: "Propina (%)", tipAmount: "Propina", finalAmount: "Total a pagar",
+  startDate: "Inicio", endDate: "Fin", tripLength: "{n} noches · {d} días", dateError: "La fecha final no puede ser anterior a la inicial. Revisa las fechas.",
+  lodging: "Alojamiento", food: "Comida", transport: "Transporte", perNight: "Por noche", perMeal: "Por comida (Big Mac)", perKm: "Por km",
+  nightsUnit: "Noches", days: "Días", mealsPerDay: "Comidas/día", kmPerDay: "km/día", extra: "Otros gastos", extraDesc: "Entradas, compras y más", addItem: "Añadir", itemName: "Concepto", amount: "Importe",
+  total: "Coste total del viaje", fillAvg: "Usar promedios", reset: "Restablecer", confirmResetBudget: "¿Borrar todo el presupuesto?", filled: "Promedios de la ciudad añadidos",
+  monthTotal: "Este mes", addRecord: "Añadir gasto", editRecord: "Editar gasto", recordDetail: "Detalle del gasto", date: "Fecha", title: "Título", category: "Categoría", memo: "Nota", memoPh: "Añade una nota", titlePh: "Almuerzo",
+  save: "Guardar", cancel: "Cancelar", delete: "Eliminar", edit: "Editar", close: "Cerrar", confirm: "Confirmar",
+  emptyDay: "No hay gastos este día", emptyHint: "Usa Añadir gasto para registrar uno",
+  cat_food: "Comida", cat_stay: "Alojamiento", cat_transport: "Transporte", cat_sight: "Turismo", cat_shop: "Compras", cat_etc: "Otros",
+  weekdays: "Dom,Lun,Mar,Mié,Jue,Vie,Sáb", items: "{n} gastos",
+  titleRequired: "Escribe un título", amountRequired: "Introduce un importe mayor que 0", dateInvalid: "Elige una fecha válida", saved: "Guardado", deleted: "Eliminado", confirmDelete: "¿Eliminar este gasto?",
+  destination: "Destino", guest: "Invitado", guestDesc: "Sin iniciar sesión", nickname: "Apodo", homeCurrency: "Divisa principal", login: "Iniciar sesión", loginSoon: "El inicio de sesión llegará pronto", accountDesc: "Inicia sesión para sincronizar tus registros entre dispositivos. (Próximamente)",
+  profile: "Perfil", data: "Datos", records: "{n} gastos registrados", resetData: "Borrar datos", confirmReset: "¿Eliminar todos los registros y ajustes? No se puede deshacer.", resetDone: "Datos borrados",
+  langChanged: "Idioma: español", version: "Versión", ratesUpdated: "Tipos actualizados", ratesFailed: "No se pudieron cargar los tipos. Usando tipos de ejemplo.", nickSaved: "Apodo guardado"
+},
+fr: {
+  appSub: "Gestion des frais de voyage", exchange: "Convertisseur", otherCurrencies: "Autres devises", perDay: "Par jour", menu: "Menu", note: "Carnet de dépenses", budget: "Budget de voyage", tip: "Pourboire", settings: "Paramètres", language: "Langue", account: "Compte",
+  noteDesc: "Notez vos dépenses par date", budgetDesc: "Total hébergement, repas et transport", tipDesc: "Pourboire et montant final",
+  liveRate: "Taux en direct", sampleRate: "Taux d'exemple utilisés", updated: "Mis à jour", selectCurrency: "Choisir une devise", calcError: "Impossible de calculer cette expression",
+  country: "Pays", city: "Ville", billAmount: "Montant", tipRate: "Pourboire (%)", tipAmount: "Pourboire", finalAmount: "Total à payer",
+  startDate: "Début", endDate: "Fin", tripLength: "{n} nuits · {d} jours", dateError: "La date de fin ne peut pas précéder la date de début. Vérifiez les dates.",
+  lodging: "Hébergement", food: "Repas", transport: "Transport", perNight: "Par nuit", perMeal: "Par repas (Big Mac)", perKm: "Par km",
+  nightsUnit: "Nuits", days: "Jours", mealsPerDay: "Repas/jour", kmPerDay: "km/jour", extra: "Autres frais", extraDesc: "Entrées, shopping, etc.", addItem: "Ajouter", itemName: "Libellé", amount: "Montant",
+  total: "Coût total du voyage", fillAvg: "Moyennes", reset: "Réinitialiser", confirmResetBudget: "Effacer tout le budget ?", filled: "Moyennes de la ville ajoutées",
+  monthTotal: "Ce mois-ci", addRecord: "Ajouter", editRecord: "Modifier la dépense", recordDetail: "Détail de la dépense", date: "Date", title: "Titre", category: "Catégorie", memo: "Note", memoPh: "Ajouter une note", titlePh: "Déjeuner",
+  save: "Enregistrer", cancel: "Annuler", delete: "Supprimer", edit: "Modifier", close: "Fermer", confirm: "Confirmer",
+  emptyDay: "Aucune dépense ce jour-là", emptyHint: "Utilisez Ajouter pour en noter une",
+  cat_food: "Repas", cat_stay: "Hébergement", cat_transport: "Transport", cat_sight: "Visites", cat_shop: "Shopping", cat_etc: "Autre",
+  weekdays: "Dim,Lun,Mar,Mer,Jeu,Ven,Sam", items: "{n} dépenses",
+  titleRequired: "Saisissez un titre", amountRequired: "Saisissez un montant supérieur à 0", dateInvalid: "Choisissez une date valide", saved: "Enregistré", deleted: "Supprimé", confirmDelete: "Supprimer cette dépense ?",
+  destination: "Destination", guest: "Invité", guestDesc: "Non connecté", nickname: "Pseudo", homeCurrency: "Devise principale", login: "Se connecter", loginSoon: "La connexion arrive bientôt", accountDesc: "Connectez-vous pour synchroniser vos données entre appareils. (Bientôt)",
+  profile: "Profil", data: "Données", records: "{n} dépenses enregistrées", resetData: "Effacer les données", confirmReset: "Supprimer toutes les données et paramètres ? Action irréversible.", resetDone: "Données effacées",
+  langChanged: "Langue : français", version: "Version", ratesUpdated: "Taux mis à jour", ratesFailed: "Taux indisponibles. Taux d'exemple utilisés.", nickSaved: "Pseudo enregistré"
+},
+de: {
+  appSub: "Reisekosten-Manager", exchange: "Währungsrechner", otherCurrencies: "Andere Währungen", perDay: "Pro Tag", menu: "Menü", note: "Ausgabenbuch", budget: "Reisebudget", tip: "Trinkgeld", settings: "Einstellungen", language: "Sprache", account: "Konto",
+  noteDesc: "Ausgaben im Kalender pro Tag erfassen", budgetDesc: "Summe aus Unterkunft, Essen, Transport", tipDesc: "Trinkgeld und Endbetrag",
+  liveRate: "Live-Kurs", sampleRate: "Beispielkurse aktiv", updated: "Aktualisiert", selectCurrency: "Währung wählen", calcError: "Ausdruck kann nicht berechnet werden",
+  country: "Land", city: "Stadt", billAmount: "Rechnungsbetrag", tipRate: "Trinkgeld (%)", tipAmount: "Trinkgeld", finalAmount: "Endbetrag",
+  startDate: "Beginn", endDate: "Ende", tripLength: "{n} Nächte · {d} Tage", dateError: "Das Enddatum darf nicht vor dem Beginn liegen. Bitte Daten prüfen.",
+  lodging: "Unterkunft", food: "Essen", transport: "Transport", perNight: "Pro Nacht", perMeal: "Pro Mahlzeit (Big Mac)", perKm: "Pro km",
+  nightsUnit: "Nächte", days: "Tage", mealsPerDay: "Mahlz./Tag", kmPerDay: "km/Tag", extra: "Sonstige Kosten", extraDesc: "Eintritt, Shopping usw.", addItem: "Hinzufügen", itemName: "Posten", amount: "Betrag",
+  total: "Gesamte Reisekosten", fillAvg: "Durchschnitt", reset: "Zurücksetzen", confirmResetBudget: "Alle Budgeteinträge löschen?", filled: "Stadtdurchschnitt eingetragen",
+  monthTotal: "Diesen Monat", addRecord: "Eintrag hinzufügen", editRecord: "Eintrag bearbeiten", recordDetail: "Ausgabedetails", date: "Datum", title: "Titel", category: "Kategorie", memo: "Notiz", memoPh: "Notiz hinzufügen", titlePh: "Mittagessen",
+  save: "Speichern", cancel: "Abbrechen", delete: "Löschen", edit: "Bearbeiten", close: "Schließen", confirm: "Bestätigen",
+  emptyDay: "Keine Ausgaben an diesem Tag", emptyHint: "Mit Eintrag hinzufügen erfassen",
+  cat_food: "Essen", cat_stay: "Unterkunft", cat_transport: "Transport", cat_sight: "Sightseeing", cat_shop: "Shopping", cat_etc: "Sonstiges",
+  weekdays: "So,Mo,Di,Mi,Do,Fr,Sa", items: "{n} Einträge",
+  titleRequired: "Titel eingeben", amountRequired: "Betrag über 0 eingeben", dateInvalid: "Gültiges Datum wählen", saved: "Gespeichert", deleted: "Gelöscht", confirmDelete: "Diesen Eintrag löschen?",
+  destination: "Reiseziel", guest: "Gast", guestDesc: "Nicht angemeldet", nickname: "Spitzname", homeCurrency: "Heimatwährung", login: "Anmelden", loginSoon: "Anmeldung folgt bald", accountDesc: "Melde dich an, um Einträge geräteübergreifend zu synchronisieren. (Demnächst)",
+  profile: "Profil", data: "Daten", records: "{n} Ausgaben gespeichert", resetData: "Daten löschen", confirmReset: "Alle Einträge und Einstellungen löschen? Das kann nicht rückgängig gemacht werden.", resetDone: "Daten gelöscht",
+  langChanged: "Sprache: Deutsch", version: "Version", ratesUpdated: "Kurse aktualisiert", ratesFailed: "Kurse nicht verfügbar. Beispielkurse aktiv.", nickSaved: "Spitzname gespeichert"
+}
+};
+
+/* =====================================================================
+   5. State
+   ===================================================================== */
+const today = new Date(); today.setHours(0, 0, 0, 0);
+const DEF_BUDGET = () => ({ country: "US", city: 0, start: ymd(today), end: ymd(addDays(today, 4)), lodging: "", food: "", meals: "3", transport: "", km: "10", extras: [] });
+const S = {
+  lang: store.get("lang", null),
+  cur: store.get("currencies", { from: "KRW", to: "USD" }),
+  rates: store.get("rates", null),
+  tip: store.get("tip", { country: "US", amount: "", rate: "10" }),
+  budget: Object.assign(DEF_BUDGET(), store.get("budget", {})),
+  expenses: store.get("expenses", []),
+  settings: Object.assign({ nickname: "", home: "KRW", lastTool: "" }, store.get("settings", {})),
+  ratesLoading: false
+};
+if (!S.lang || !I18N[S.lang]) {
+  const nav = (navigator.language || "ko").slice(0, 2);
+  S.lang = I18N[nav] ? nav : "ko";
+}
+if (!CURRENCIES.includes(S.cur.from)) S.cur.from = "KRW";
+if (!CURRENCIES.includes(S.cur.to)) S.cur.to = "USD";
+if (!Array.isArray(S.expenses)) S.expenses = [];
+const saveBudget = () => store.set("budget", S.budget);
+const saveExpenses = () => store.set("expenses", S.expenses);
+const saveSettings = () => store.set("settings", S.settings);
+
+const t = (k, vars) => {
+  let s = (I18N[S.lang] && I18N[S.lang][k]) ?? I18N.en[k] ?? k;
+  if (vars) s = s.replace(/\{(\w+)\}/g, (m, n) => vars[n] ?? m);
+  return s;
+};
+const loc = () => (LANGS.find(l => l.id === S.lang) || LANGS[0]).loc;
+const cityIdx = () => ({ ko: 0, ja: 2, zh: 3 }[S.lang] ?? 1);
+function regionName(code) {
+  try { return new Intl.DisplayNames([loc()], { type: "region" }).of(code); } catch (e) { return code; }
+}
+function curName(cur) {
+  try { return new Intl.DisplayNames([loc()], { type: "currency" }).of(cur); } catch (e) { return cur; }
+}
+function fmt(v, cur, opts = {}) {
+  const d = ZERO_DEC.includes(cur) ? 0 : 2;
+  try {
+    return new Intl.NumberFormat(loc(), { style: "currency", currency: cur, minimumFractionDigits: opts.trim && Math.abs((v || 0) - Math.round(v || 0)) < 0.005 ? 0 : d, maximumFractionDigits: d }).format(v || 0);
+  } catch (e) { return cur + " " + (v || 0).toFixed(d); }
+}
+function curSymbol(cur) {
+  try {
+    const p = new Intl.NumberFormat(loc(), { style: "currency", currency: cur, currencyDisplay: "narrowSymbol" }).formatToParts(0);
+    return (p.find(x => x.type === "currency") || {}).value || cur;
+  } catch (e) { return cur; }
+}
+const roundCur = (v, cur) => ZERO_DEC.includes(cur) ? Math.round(v) : Math.round(v * 100) / 100;
+
+/* =====================================================================
+   6. Exchange rates (API + sample fallback)
+   ===================================================================== */
+const rateOf = c => (S.rates && S.rates.rates && S.rates.rates[c]) || SAMPLE_RATES[c];
+const convert = (v, a, b) => a === b ? v : v / rateOf(a) * rateOf(b);
+async function loadRates(force = false) {
+  const fresh = S.rates && S.rates.live && Date.now() - S.rates.time < 6 * 3600 * 1000;
+  if (fresh && !force) { renderRateStatus(); return; }
+  S.ratesLoading = true; renderRateStatus();
+  try {
+    const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 7000);
+    const res = await fetch("https://open.er-api.com/v6/latest/USD", { signal: ctrl.signal, cache: "no-store" });
+    clearTimeout(timer);
+    const data = await res.json();
+    if (data.result !== "success" || !data.rates) throw new Error("bad");
+    const rates = {}; CURRENCIES.forEach(c => { if (data.rates[c]) rates[c] = data.rates[c]; });
+    if (Object.keys(rates).length < CURRENCIES.length) throw new Error("missing");
+    S.rates = { rates, time: Date.now(), live: true };
+    store.set("rates", S.rates);
+    if (force) toast(t("ratesUpdated"));
+  } catch (e) {
+    if (!(S.rates && S.rates.live)) S.rates = { rates: { ...SAMPLE_RATES }, time: Date.now(), live: false };
+    if (force) toast(t("ratesFailed"));
+  }
+  S.ratesLoading = false;
+  renderAll();
+}
+function renderRateStatus() {
+  const live = S.rates && S.rates.live;
+  $("#rateDot").classList.toggle("live", !!live);
+  let txt = live ? t("liveRate") : t("sampleRate");
+  if (live) txt += " · " + t("updated") + " " + new Intl.DateTimeFormat(loc(), { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(S.rates.time));
+  $("#rateText").textContent = txt;
+  $("#sideRate").textContent = live ? t("liveRate") : t("sampleRate");
+  $("#rateRefresh svg").classList.toggle("spin", S.ratesLoading);
+}
+
+/* =====================================================================
+   7. Calculator engine (no eval: tokenizer + recursive descent)
+   ===================================================================== */
+function evaluate(src) {
+  const tk = []; let i = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (/[\d.]/.test(c)) { let j = i; while (j < src.length && /[\d.]/.test(src[j])) j++; tk.push({ t: "n", v: Number(src.slice(i, j).replace(/\.$/, "")) }); i = j; }
+    else if ("+-*/()%".includes(c)) { tk.push({ t: c }); i++; }
+    else throw new Error("char");
+  }
+  let p = 0; const peek = () => tk[p];
+  function expr() { let v = term(); while (peek() && (peek().t === "+" || peek().t === "-")) { const o = tk[p++].t; const r = term(); v = o === "+" ? v + r : v - r; } return v; }
+  function term() {
+    let v = unary();
+    while (peek()) {
+      const o = peek().t;
+      if (o === "*" || o === "/") { p++; const r = unary(); v = o === "*" ? v * r : v / r; }
+      else if (o === "n" || o === "(") { v *= unary(); }
+      else break;
+    }
+    return v;
+  }
+  function unary() { if (peek() && peek().t === "-") { p++; return -unary(); } if (peek() && peek().t === "+") { p++; return unary(); } return post(); }
+  function post() { let v = prim(); while (peek() && peek().t === "%") { p++; v /= 100; } return v; }
+  function prim() {
+    const x = tk[p++]; if (!x) throw new Error("end");
+    if (x.t === "n") { if (isNaN(x.v)) throw new Error("nan"); return x.v; }
+    if (x.t === "(") { const v = expr(); if (peek() && peek().t === ")") p++; return v; }
+    throw new Error("tok");
+  }
+  if (!tk.length) return 0;
+  const v = expr();
+  if (p < tk.length) throw new Error("rest");
+  return v;
+}
+function preview(e) {
+  let s = e; while (/[+\-*/(.]$/.test(s)) s = s.slice(0, -1);
+  if (!s) return 0;
+  try { const v = evaluate(s); return isFinite(v) ? v : NaN; } catch (er) { return NaN; }
+}
+const numToStr = v => { const r = parseFloat(v.toPrecision(12)); return Math.abs(r) < 1e-10 ? "0" : String(r).includes("e") ? r.toFixed(10).replace(/\.?0+$/, "") : String(r); };
+const groupInt = s => s.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+const showExpr = e => e.replace(/\d+(\.\d*)?/g, m => { const [a, b] = m.split("."); return groupInt(a) + (b !== undefined ? "." + b : ""); })
+  .replace(/\*/g, "×").replace(/\//g, "÷").replace(/-/g, "−");
+
+const calc = { expr: "", justEval: false, err: false };
+function pressMain(k) {
+  let e = calc.expr; const last = e.slice(-1); const curNum = (e.match(/[\d.]*$/) || [""])[0];
+  calc.err = false;
+  if (e.length > 40 && !["C", "back", "="].includes(k)) return flash();
+  if (/^\d$/.test(k)) {
+    if (calc.justEval) e = "";
+    else {
+      if (last === ")" || last === "%") e += "*";
+      if (curNum === "0") e = e.slice(0, -1);
+      if (curNum.replace(".", "").length >= 15) return flash();
+      if (curNum.includes(".") && curNum.split(".")[1].length >= 8) return flash();
+    }
+    e += k;
+  } else if (k === ".") {
+    if (calc.justEval) e = "";
+    if (!calc.justEval && curNum.includes(".")) return flash();
+    if (last === ")" || last === "%") e += "*";
+    if (!(e.match(/[\d.]*$/) || [""])[0]) e += "0";
+    e += ".";
+  } else if ("+-*/".includes(k)) {
+    if (e === "") { if (k === "-") e = "-"; else return flash(); }
+    else {
+      if (last === ".") e = e.slice(0, -1);
+      let l = e.slice(-1);
+      if ("+-*/".includes(l)) { e = e.slice(0, -1); l = e.slice(-1); }
+      if ((l === "" || l === "(") && k !== "-") { calc.expr = e; calc.justEval = false; return renderMain(); }
+      e += k;
+    }
+  } else if (k === "%") {
+    if (/[\d)]$/.test(e)) e += "%"; else return flash();
+  } else if (k === "()") {
+    const open = (e.match(/\(/g) || []).length - (e.match(/\)/g) || []).length;
+    if (calc.justEval) { e = e ? e + "*(" : "("; }
+    else if (open > 0 && /[\d)%]$/.test(e)) e += ")";
+    else { if (last === ".") e = e.slice(0, -1); if (/[\d)%]$/.test(e)) e += "*"; e += "("; }
+  } else if (k === "back") {
+    e = calc.justEval ? "" : e.slice(0, -1);
+  } else if (k === "C") {
+    e = "";
+  } else if (k === "=") {
+    if (!e) return;
+    let s = e; while (/[+\-*/(.]$/.test(s)) s = s.slice(0, -1);
+    const open = (s.match(/\(/g) || []).length - (s.match(/\)/g) || []).length;
+    s += ")".repeat(Math.max(0, open));
+    let v; try { v = evaluate(s); } catch (er) { v = NaN; }
+    if (!isFinite(v) || Math.abs(v) >= 1e15) { calc.err = true; renderMain(); return flash(); }
+    calc.expr = numToStr(v); calc.justEval = true; renderMain(); return;
+  }
+  calc.expr = e; calc.justEval = false; renderMain();
+}
+function flash() { const el = $("#exprView"); el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 180 }); }
+
+function renderMain() {
+  const { from, to } = S.cur;
+  $("#fromBtn").innerHTML = flag(curCountry(from)) + `<span>${from}</span>` + ic("chevD");
+  $("#toBtn").innerHTML = flag(curCountry(to)) + `<span>${to}</span>` + ic("chevD");
+  $("#fromName").textContent = curName(from);
+  $("#toName").textContent = curName(to);
+  const e = calc.expr;
+  const ev = $("#exprView");
+  ev.textContent = e ? showExpr(e) : "0";
+  ev.classList.toggle("long", ev.textContent.length > 11 && ev.textContent.length <= 17);
+  ev.classList.toggle("longer", ev.textContent.length > 17);
+  const v = preview(e);
+  const res = $("#exprRes");
+  res.classList.toggle("bad", calc.err || (e && isNaN(v)));
+  if (calc.err || (e && isNaN(v))) res.textContent = t("calcError");
+  else if (/[+*/%()]|.-/.test(e)) res.textContent = "= " + fmt(v, from, { trim: true });
+  else res.textContent = e ? fmt(v, from, { trim: true }) : "";
+  const out = isNaN(v) ? 0 : convert(v, from, to);
+  const ov = $("#outView");
+  ov.textContent = fmt(out, to);
+  ov.classList.toggle("long", ov.textContent.length > 11 && ov.textContent.length <= 17);
+  ov.classList.toggle("longer", ov.textContent.length > 17);
+  const r = convert(1, from, to);
+  const rs = r >= 100 ? r.toFixed(2) : r >= 1 ? r.toFixed(4) : r.toPrecision(4);
+  $("#rateLine").textContent = `1 ${from} = ${Number(rs).toLocaleString(loc(), { maximumFractionDigits: 6 })} ${to}`;
+  const base = isNaN(v) || !e ? 1 : v;
+  $("#ratesList").innerHTML = CURRENCIES.filter(c => c !== from).map(c => `
+    <button class="rate-row ${c === to ? "on" : ""}" data-cur="${c}">${flag(curCountry(c))}<b>${c}</b><span>${esc(curName(c))}</span><strong>${fmt(convert(base, from, c), c)}</strong></button>`).join("");
+  renderRateStatus();
+}
+
+/* =====================================================================
+   8. Tip calculator
+   ===================================================================== */
+let tipField = "amount";
+const saveTip = () => store.set("tip", S.tip);
+function pressTip(k) {
+  if (k === "%") { tipField = "rate"; return renderTip(); }
+  if (k === "swap") { tipField = tipField === "amount" ? "rate" : "amount"; return renderTip(); }
+  let v = S.tip[tipField] || "";
+  if (k === "C") v = "";
+  else if (k === "back") v = v.slice(0, -1);
+  else if (k === ".") { if (v.includes(".")) return; v = (v || "0") + "."; }
+  else if (k === "00" || /^\d$/.test(k)) {
+    if (v === "0") v = "";
+    const nv = v + k;
+    if (v.includes(".") && nv.split(".")[1].length > 2) return;
+    if (nv.replace(".", "").length > 12) return;
+    if (tipField === "rate" && parseFloat(nv) > 100) { toast("0 – 100 %"); return; }
+    if (k === "00" && !v) return;
+    v = nv;
+  }
+  S.tip[tipField] = v; saveTip(); renderTip();
+}
+function renderTip() {
+  const c = countryOf(S.tip.country), cur = c.cur, sym = curSymbol(cur);
+  const sel = $("#tipCountry");
+  sel.innerHTML = COUNTRIES.map(x => `<option value="${x.code}" ${x.code === S.tip.country ? "selected" : ""}>${esc(regionName(x.code))} · ${x.cur} (${esc(curSymbol(x.cur))})</option>`).join("");
+  const a = S.tip.amount, r = S.tip.rate;
+  const av = $("#tipAmountView");
+  if (a) { const [i, d] = a.split("."); av.textContent = sym + " " + groupInt(i || "0") + (d !== undefined ? "." + d : ""); av.classList.remove("ph"); }
+  else { av.textContent = sym + " 0"; av.classList.add("ph"); }
+  const rv = $("#tipRateView");
+  rv.textContent = (r || "0") + " %"; rv.classList.toggle("ph", !r);
+  $$("#s-tip .tfield").forEach(b => b.classList.toggle("on", b.dataset.field === tipField));
+  $$("#tipChips .chip").forEach(b => b.classList.toggle("on", b.dataset.rate === String(num(r))));
+  const amt = num(a), rate = num(r);
+  if (!a || amt <= 0) { $("#tipOut").textContent = "—"; $("#tipTotal").textContent = "—"; return; }
+  const tipV = amt * rate / 100;
+  $("#tipOut").textContent = fmt(tipV, cur);
+  $("#tipTotal").textContent = fmt(amt + tipV, cur);
+}
+
+/* =====================================================================
+   9. Budget calculator
+   ===================================================================== */
+function budgetCalc() {
+  const b = S.budget, s = parseYmd(b.start), e = parseYmd(b.end);
+  let nights = 0, days = 0, error = "";
+  if (!s || !e) error = t("dateInvalid");
+  else if (e < s) error = t("dateError");
+  else { nights = Math.round((e - s) / 86400000); days = nights + 1; }
+  const L = num(b.lodging) * nights, F = num(b.food) * num(b.meals) * days, T = num(b.transport) * num(b.km) * days;
+  const X = b.extras.reduce((sum, x) => sum + num(x.amount), 0);
+  return { nights, days, error, L, F, T, X, total: L + F + T + X };
+}
+function renderBudgetSelects() {
+  const b = S.budget, c = countryOf(b.country);
+  $("#bCountry").innerHTML = COUNTRIES.map(x => `<option value="${x.code}" ${x.code === b.country ? "selected" : ""}>${esc(regionName(x.code))} (${x.cur})</option>`).join("");
+  if (b.city >= c.cities.length) b.city = 0;
+  $("#bCity").innerHTML = c.cities.map((n, i) => `<option value="${i}" ${i === +b.city ? "selected" : ""}>${esc(n[cityIdx()])}</option>`).join("");
+  $("#bStart").value = b.start; $("#bEnd").value = b.end;
+  $("#bLodging").value = b.lodging; $("#bFood").value = b.food; $("#bMeals").value = b.meals;
+  $("#bTrans").value = b.transport; $("#bKm").value = b.km;
+  const sym = curSymbol(c.cur);
+  $$("#s-budget .csym").forEach(el => el.textContent = sym);
+  const nf = v => Number(v).toLocaleString(loc());
+  $("#bLodging").placeholder = nf(c.avg[0]); $("#bFood").placeholder = nf(c.avg[1]); $("#bTrans").placeholder = nf(c.avg[2]);
+  $("#bMeals").placeholder = "3"; $("#bKm").placeholder = "10";
+  renderExtras();
+}
+function renderExtras() {
+  $("#extraList").innerHTML = S.budget.extras.map(x => `
+    <div class="extra-row" data-id="${x.id}">
+      <input class="inp n" data-k="name" value="${esc(x.name)}" placeholder="${esc(t("itemName"))}" maxlength="30">
+      <input class="inp a" data-k="amount" value="${esc(x.amount)}" placeholder="${esc(t("amount"))}" inputmode="decimal">
+      <button class="ibtn sm" data-del aria-label="${esc(t("delete"))}">${ic("trash")}</button>
+    </div>`).join("");
+}
+function renderBudget() {
+  const b = S.budget, cur = countryOf(b.country).cur, r = budgetCalc();
+  $("#bDateErr").textContent = r.error;
+  $("#bStart").classList.toggle("bad", !!r.error); $("#bEnd").classList.toggle("bad", !!r.error);
+  $("#bLength").textContent = r.error ? "—" : t("tripLength", { n: r.nights, d: r.days });
+  $("#qNights").textContent = r.nights; $("#qDays1").textContent = r.days; $("#qDays2").textContent = r.days;
+  $("#subLodging").textContent = fmt(r.L, cur, { trim: true });
+  $("#subFood").textContent = fmt(r.F, cur, { trim: true });
+  $("#subTrans").textContent = fmt(r.T, cur, { trim: true });
+  $("#subExtra").textContent = fmt(r.X, cur, { trim: true });
+  $("#bTotal").textContent = fmt(r.total, cur);
+  const home = S.settings.home;
+  $("#bApprox").textContent = home !== cur && r.total > 0 ? "≈ " + fmt(convert(r.total, cur, home), home) : "";
+  const parts = [["lodging", r.L, "#0879C9"], ["food", r.F, "#4BA3E3"], ["transport", r.T, "#9CCBF0"], ["extra", r.X, "#0B2545"]];
+  $("#bBar").innerHTML = r.total > 0 ? parts.map(p => `<i style="width:${p[1] / r.total * 100}%;background:${p[2]}"></i>`).join("") : "";
+  $("#bLegend").innerHTML = parts.map(p => `<span><i style="background:${p[2]}"></i>${esc(t(p[0]))} ${r.total > 0 ? Math.round(p[1] / r.total * 100) : 0}%</span>`).join("");
+  $("#bRows").innerHTML = parts.map(p => `<div class="kv"><span>${esc(t(p[0]))}</span><b>${fmt(p[1], cur, { trim: true })}</b></div>`).join("")
+    + `<div class="kv"><span>${esc(t("perDay"))}</span><b>${r.days ? fmt(r.total / r.days, cur) : "—"}</b></div>`;
+}
+function changeBudgetCountry(code) {
+  const b = S.budget, oldCur = countryOf(b.country).cur, newCur = countryOf(code).cur;
+  const cv = v => v === "" ? "" : String(roundCur(convert(num(v), oldCur, newCur), newCur));
+  b.lodging = cv(b.lodging); b.food = cv(b.food); b.transport = cv(b.transport);
+  b.extras.forEach(x => x.amount = cv(x.amount));
+  b.country = code; b.city = 0; saveBudget();
+  renderBudgetSelects(); renderBudget(); renderNote();
+}
+
+/* =====================================================================
+   10. Expense note (calendar)
+   ===================================================================== */
+const note = { month: new Date(today.getFullYear(), today.getMonth(), 1), sel: ymd(today) };
+const tripCur = () => countryOf(S.budget.country).cur;
+const catOf = id => CATS.find(c => c.id === id) || CATS[5];
+function renderNote() {
+  const b = S.budget, c = countryOf(b.country);
+  $("#tripName").innerHTML = `<span style="display:inline-flex;align-items:center;gap:8px">${flag(c.code)}${esc(c.cities[b.city] ? c.cities[b.city][cityIdx()] : "")}, ${esc(regionName(c.code))}</span>`;
+  const y = note.month.getFullYear(), m = note.month.getMonth(), tc = tripCur();
+  $("#calTitle").textContent = new Intl.DateTimeFormat(loc(), { year: "numeric", month: "long" }).format(note.month);
+  const prefix = `${y}-${pad2(m + 1)}-`;
+  const monthSum = S.expenses.filter(x => x.date.startsWith(prefix)).reduce((s, x) => s + convert(num(x.amount), x.currency, tc), 0);
+  $("#monthTotal").textContent = fmt(monthSum, tc, { trim: true });
+  const daySum = {};
+  S.expenses.forEach(x => { daySum[x.date] = (daySum[x.date] || 0) + convert(num(x.amount), x.currency, tc); });
+  const hasSet = new Set(Object.keys(daySum));
+  let compact; try { compact = new Intl.NumberFormat(loc(), { style: "currency", currency: tc, notation: "compact", maximumFractionDigits: 1 }); } catch (er) { compact = { format: v => Math.round(v) }; }
+  const wd = t("weekdays").split(",");
+  let h = wd.map((w, i) => `<div class="wd ${i === 0 ? "sun" : i === 6 ? "sat" : ""}">${esc(w)}</div>`).join("");
+  const first = new Date(y, m, 1), offset = first.getDay(), dim = new Date(y, m + 1, 0).getDate();
+  const cells = Math.ceil((offset + dim) / 7) * 7;
+  for (let i = 0; i < cells; i++) {
+    const d = new Date(y, m, 1 - offset + i), key = ymd(d), dow = d.getDay();
+    const cls = ["day", dow === 0 ? "sun" : dow === 6 ? "sat" : "", d.getMonth() !== m ? "other" : "", key === ymd(today) ? "today" : "", key === note.sel ? "sel" : "", hasSet.has(key) ? "has" : ""].join(" ");
+    h += `<button class="${cls}" data-date="${key}" aria-label="${key}">${d.getDate()}${daySum[key] ? `<small>${compact.format(daySum[key])}</small>` : ""}</button>`;
+  }
+  $("#cal").innerHTML = h;
+  renderDay();
+}
+function renderDay() {
+  const d = parseYmd(note.sel), tc = tripCur();
+  $("#dayTitle").textContent = new Intl.DateTimeFormat(loc(), { month: "long", day: "numeric", weekday: "short" }).format(d);
+  const list = S.expenses.filter(x => x.date === note.sel);
+  const sum = list.reduce((s, x) => s + convert(num(x.amount), x.currency, tc), 0);
+  $("#dayTotal").textContent = list.length ? t("items", { n: list.length }) + " · " + fmt(sum, tc, { trim: true }) : "";
+  $("#dayList").innerHTML = list.length ? list.map(x => `
+    <button class="ex-item" data-id="${x.id}">
+      <span class="ex-ic">${ic(catOf(x.category).ic)}</span>
+      <span class="ex-mid"><b>${esc(x.title)}</b><small>${esc(t("cat_" + catOf(x.category).id))}${x.memo ? " · " + esc(x.memo) : ""}</small></span>
+      <span class="ex-amt">${fmt(num(x.amount), x.currency, { trim: true })}</span>
+    </button>`).join("")
+    : `<div class="empty">${ic("empty")}<b>${esc(t("emptyDay"))}</b><small>${esc(t("emptyHint"))}</small></div>`;
+}
+function curOptions(selected) {
+  return CURRENCIES.map(c => `<option value="${c}" ${c === selected ? "selected" : ""}>${c} ${esc(curSymbol(c))}</option>`).join("");
+}
+function openExpenseForm(item) {
+  const isEdit = !!item;
+  const x = item || { date: note.sel, title: "", amount: "", currency: tripCur(), category: "food", memo: "" };
+  openSheet(`
+    <h2>${esc(t(isEdit ? "editRecord" : "addRecord"))}</h2>
+    <div class="fgroup"><p class="label">${esc(t("date"))}</p><input type="date" class="inp" id="fDate" value="${esc(x.date)}"></div>
+    <div class="fgroup"><p class="label">${esc(t("title"))}</p><input class="inp" id="fTitle" maxlength="40" value="${esc(x.title)}" placeholder="${esc(t("titlePh"))}"></div>
+    <div class="fgroup"><p class="label">${esc(t("amount"))}</p><div class="amt-row"><input class="inp" id="fAmount" inputmode="decimal" value="${esc(x.amount)}" placeholder="0"><select class="sel" id="fCur">${curOptions(x.currency)}</select></div></div>
+    <div class="fgroup"><p class="label">${esc(t("category"))}</p><div class="cat-chips" id="fCats">${CATS.map(c => `<button class="chip ${c.id === x.category ? "on" : ""}" data-cat="${c.id}">${ic(c.ic)}${esc(t("cat_" + c.id))}</button>`).join("")}</div></div>
+    <div class="fgroup"><p class="label">${esc(t("memo"))}</p><textarea class="inp" id="fMemo" maxlength="200" placeholder="${esc(t("memoPh"))}">${esc(x.memo)}</textarea></div>
+    <p class="err" id="fErr"></p>
+    <div class="btns">
+      ${isEdit ? `<button class="btn danger" id="fDel" style="flex:none;width:52px" aria-label="${esc(t("delete"))}">${ic("trash")}</button>` : ""}
+      <button class="btn ghost" data-close>${esc(t("cancel"))}</button>
+      <button class="btn primary" id="fSave">${esc(t("save"))}</button>
+    </div>`, sh => {
+    let cat = x.category;
+    $("#fCats", sh).addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; cat = b.dataset.cat; $$("#fCats .chip", sh).forEach(c => c.classList.toggle("on", c === b)); });
+    $("#fAmount", sh).addEventListener("input", e => { e.target.value = cleanNum(e.target.value); e.target.classList.remove("bad"); $("#fErr", sh).textContent = ""; });
+    $("#fTitle", sh).addEventListener("input", e => { e.target.classList.remove("bad"); $("#fErr", sh).textContent = ""; });
+    $("#fSave", sh).addEventListener("click", () => {
+      const date = $("#fDate", sh).value, title = $("#fTitle", sh).value.trim(), amount = cleanNum($("#fAmount", sh).value);
+      let err = "";
+      if (!parseYmd(date)) err = t("dateInvalid");
+      else if (!title) { err = t("titleRequired"); $("#fTitle", sh).classList.add("bad"); }
+      else if (!(num(amount) > 0)) { err = t("amountRequired"); $("#fAmount", sh).classList.add("bad"); }
+      if (err) { $("#fErr", sh).textContent = err; return; }
+      const rec = { id: isEdit ? x.id : uid(), date, title, amount, currency: $("#fCur", sh).value, category: cat, memo: $("#fMemo", sh).value.trim() };
+      if (isEdit) S.expenses = S.expenses.map(e => e.id === rec.id ? rec : e); else S.expenses.push(rec);
+      saveExpenses();
+      note.sel = date; const d = parseYmd(date); note.month = new Date(d.getFullYear(), d.getMonth(), 1);
+      closeSheet(); renderNote(); renderAccount(); toast(t("saved"));
+    });
+    const del = $("#fDel", sh); if (del) del.addEventListener("click", () => confirmDelete(x.id));
+    if (!isEdit) setTimeout(() => $("#fTitle", sh).focus(), 320);
+  });
+}
+function openExpenseDetail(id) {
+  const x = S.expenses.find(e => e.id === id); if (!x) return;
+  const tc = tripCur(), cat = catOf(x.category);
+  openSheet(`
+    <h2>${esc(t("recordDetail"))}</h2>
+    <div class="row" style="justify-content:flex-start;gap:12px"><span class="ex-ic">${ic(cat.ic)}</span><div><b style="font-size:17px">${esc(x.title)}</b><div class="muted" style="font-size:13px">${esc(t("cat_" + cat.id))}</div></div></div>
+    <div class="detail-amt">${fmt(num(x.amount), x.currency)}</div>
+    ${x.currency !== tc ? `<div class="muted" style="font-size:13px;margin-bottom:8px">≈ ${fmt(convert(num(x.amount), x.currency, tc), tc)}</div>` : `<div style="height:8px"></div>`}
+    <div class="kv"><span>${esc(t("date"))}</span><b>${esc(new Intl.DateTimeFormat(loc(), { dateStyle: "full" }).format(parseYmd(x.date)))}</b></div>
+    <div class="kv"><span>${esc(t("memo"))}</span><b>${x.memo ? esc(x.memo) : "—"}</b></div>
+    <div class="btns">
+      <button class="btn danger" id="dDel">${ic("trash")}${esc(t("delete"))}</button>
+      <button class="btn primary" id="dEdit">${ic("edit")}${esc(t("edit"))}</button>
+    </div>`, sh => {
+    $("#dEdit", sh).addEventListener("click", () => openExpenseForm(x));
+    $("#dDel", sh).addEventListener("click", () => confirmDelete(x.id));
+  });
+}
+function confirmDelete(id) {
+  openConfirm(t("confirmDelete"), t("delete"), () => {
+    S.expenses = S.expenses.filter(e => e.id !== id); saveExpenses();
+    renderNote(); renderAccount(); toast(t("deleted"));
+  });
+}
+
+/* =====================================================================
+   11. Settings / language / account
+   ===================================================================== */
+function renderSettings() {
+  $("#setLangVal").textContent = (LANGS.find(l => l.id === S.lang) || LANGS[0]).name;
+  $("#setAccVal").textContent = S.settings.nickname || t("guest");
+  $("#sideName").textContent = S.settings.nickname || t("guest");
+  $("#sideAvatar").innerHTML = S.settings.nickname ? esc([...S.settings.nickname][0].toUpperCase()) : ic("user");
+}
+function renderLang() {
+  $("#langList").innerHTML = LANGS.map(l => `
+    <button class="li ${l.id === S.lang ? "on" : ""}" data-lang="${l.id}" lang="${l.id}">
+      ${ic("star", "star")}<b>${esc(l.name)}<small>${esc(l.en)}</small></b>${ic("check", "chk")}
+    </button>`).join("");
+}
+function renderAccount() {
+  const name = S.settings.nickname || t("guest");
+  $("#accName").textContent = name;
+  $("#avatar").innerHTML = S.settings.nickname ? esc([...S.settings.nickname][0].toUpperCase()) : ic("user");
+  $("#accNick").value = S.settings.nickname; $("#accNick").placeholder = t("guest");
+  $("#accHome").innerHTML = CURRENCIES.map(c => `<option value="${c}" ${c === S.settings.home ? "selected" : ""}>${c} · ${esc(curName(c))}</option>`).join("");
+  $("#accRecords").textContent = t("records", { n: S.expenses.length });
+}
+function setLang(id) {
+  if (!I18N[id]) return;
+  S.lang = id; store.set("lang", id);
+  applyI18n(); toast(t("langChanged"));
+}
+
+/* =====================================================================
+   12. Sheet, confirm, toast
+   ===================================================================== */
+const overlay = $("#overlay"), sheet = $("#sheet");
+let lastFocus = null;
+function openSheet(html, onMount) {
+  lastFocus = document.activeElement;
+  sheet.innerHTML = `<div class="grab"></div>` + html;
+  overlay.classList.add("open");
+  $$("[data-close]", sheet).forEach(b => b.addEventListener("click", closeSheet));
+  if (onMount) onMount(sheet);
+}
+function closeSheet() { overlay.classList.remove("open"); if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true }); }
+overlay.addEventListener("click", e => { if (e.target === overlay) closeSheet(); });
+function openConfirm(msg, okLabel, onOk) {
+  openSheet(`<h2 style="font-size:17px;line-height:1.5;margin:6px 0 4px">${esc(msg)}</h2>
+    <div class="btns"><button class="btn ghost" data-close>${esc(t("cancel"))}</button><button class="btn primary" id="cOk" style="background:var(--red)">${esc(okLabel)}</button></div>`,
+    sh => $("#cOk", sh).addEventListener("click", () => { closeSheet(); onOk(); }));
+}
+function openCurrencyPicker(which) {
+  const curSel = S.cur[which];
+  openSheet(`<h2>${esc(t("selectCurrency"))}</h2>` + CURRENCIES.map(c => `
+    <button class="cur-opt ${c === curSel ? "on" : ""}" data-cur="${c}">${flag(curCountry(c))}<b>${c}</b><span>${esc(curName(c))} · ${esc(regionName(curCountry(c)))}</span>${ic("check")}</button>`).join(""),
+    sh => sh.addEventListener("click", e => {
+      const b = e.target.closest(".cur-opt"); if (!b) return;
+      const c = b.dataset.cur, other = which === "from" ? "to" : "from";
+      if (S.cur[other] === c) S.cur[other] = S.cur[which];
+      S.cur[which] = c; store.set("currencies", S.cur); closeSheet(); renderMain();
+    }));
+}
+let toastTimer;
+function toast(msg) {
+  const el = $("#toast"); el.textContent = msg; el.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+/* =====================================================================
+   13. Router (hash based, slide transitions, back support)
+   ===================================================================== */
+const DEPTH = { main: 0, menu: 1, settings: 1, tip: 2, budget: 2, note: 2, lang: 2, account: 2 };
+const PARENT = { menu: "main", settings: "main", tip: "menu", budget: "menu", note: "menu", lang: "settings", account: "settings" };
+let current = null, pushed = 0;
+const wideMQ = matchMedia("(min-width:768px)");
+const NAV_OF = { main: "main", menu: "main", note: "note", budget: "budget", tip: "tip", settings: "settings", lang: "settings", account: "settings" };
+function show(name, animate = true) {
+  if (!DEPTH.hasOwnProperty(name)) name = "main";
+  if (name === "menu" && wideMQ.matches) { history.replaceState(null, "", "#main"); name = "main"; }
+  $$(".side .nav").forEach(n => n.classList.toggle("on", n.dataset.go === NAV_OF[name]));
+  if (name === current) return;
+  const next = $("#s-" + name), prev = current && $("#s-" + current);
+  const fwd = current == null || DEPTH[name] >= DEPTH[current];
+  next.classList.add("no-anim"); next.classList.remove("active", "pos-left", "pos-right");
+  next.classList.add(fwd ? "pos-right" : "pos-left");
+  void next.offsetWidth;
+  if (animate) next.classList.remove("no-anim");
+  next.classList.remove("pos-left", "pos-right"); next.classList.add("active");
+  if (prev) { if (!animate) prev.classList.add("no-anim"); else prev.classList.remove("no-anim"); prev.classList.remove("active"); prev.classList.add(fwd ? "pos-left" : "pos-right"); }
+  if (!animate) requestAnimationFrame(() => next.classList.remove("no-anim"));
+  current = name;
+  closeSheet();
+  if (["tip", "budget", "note"].includes(name)) { S.settings.lastTool = name; saveSettings(); }
+  $$(".m-item").forEach(m => m.classList.toggle("on", m.dataset.tool === S.settings.lastTool));
+  if (name === "note") renderNote();
+  if (name === "budget") renderBudget();
+}
+function go(name) { pushed++; location.hash = name; }
+function back() {
+  if (pushed > 0) { pushed--; history.back(); }
+  else { location.replace("#" + (PARENT[current] || "main")); }
+}
+window.addEventListener("hashchange", () => show(location.hash.slice(1) || "main"));
+wideMQ.addEventListener("change", e => { if (e.matches && current === "menu") show("main", false); });
+
+/* =====================================================================
+   14. Render all + i18n apply
+   ===================================================================== */
+function renderAll() {
+  renderMain(); renderTip(); renderBudgetSelects(); renderBudget(); renderNote(); renderSettings(); renderLang(); renderAccount();
+}
+function applyI18n() {
+  document.documentElement.lang = S.lang;
+  $$("[data-i18n]").forEach(el => el.textContent = t(el.dataset.i18n));
+  $$("[data-i18n-aria]").forEach(el => el.setAttribute("aria-label", t(el.dataset.i18nAria)));
+  renderAll();
+}
+
+/* =====================================================================
+   15. Events
+   ===================================================================== */
+function buildPad(el, keys, handler) {
+  el.innerHTML = keys.map(k => `<button class="key ${k.c || ""}" data-k="${k.k}" aria-label="${k.a || k.k}">${k.l}</button>`).join("");
+  el.addEventListener("click", e => { const b = e.target.closest(".key"); if (b) handler(b.dataset.k); });
+}
+function boot() {
+  hydrateIcons();
+  buildPad($("#mainPad"), [
+    { k: "C", l: "C", c: "fn clr", a: "clear" }, { k: "back", l: ic("backspace"), c: "fn", a: "backspace" }, { k: "%", l: "%", c: "op" }, { k: "/", l: "÷", c: "op", a: "divide" },
+    { k: "7", l: "7" }, { k: "8", l: "8" }, { k: "9", l: "9" }, { k: "*", l: "×", c: "op", a: "multiply" },
+    { k: "4", l: "4" }, { k: "5", l: "5" }, { k: "6", l: "6" }, { k: "-", l: "−", c: "op", a: "minus" },
+    { k: "1", l: "1" }, { k: "2", l: "2" }, { k: "3", l: "3" }, { k: "+", l: "+", c: "op", a: "plus" },
+    { k: "()", l: "( )", c: "fn", a: "parentheses" }, { k: "0", l: "0" }, { k: ".", l: ".", a: "decimal" }, { k: "=", l: "=", c: "eq", a: "equals" }
+  ], pressMain);
+  buildPad($("#tipPad"), [
+    { k: "7", l: "7" }, { k: "8", l: "8" }, { k: "9", l: "9" }, { k: "back", l: ic("backspace"), c: "fn", a: "backspace" },
+    { k: "4", l: "4" }, { k: "5", l: "5" }, { k: "6", l: "6" }, { k: "C", l: "C", c: "fn clr", a: "clear" },
+    { k: "1", l: "1" }, { k: "2", l: "2" }, { k: "3", l: "3" }, { k: "%", l: "%", c: "op", a: "tip rate" },
+    { k: "00", l: "00" }, { k: "0", l: "0" }, { k: ".", l: ".", a: "decimal" }, { k: "swap", l: ic("swap"), c: "eq", a: "next field" }
+  ], pressTip);
+  $("#tipChips").innerHTML = [5, 10, 15, 18, 20].map(r => `<button class="chip" data-rate="${r}">${r}%</button>`).join("");
+
+  /* navigation */
+  document.addEventListener("click", e => {
+    const g = e.target.closest("[data-go]"); if (g) { go(g.dataset.go); return; }
+    if (e.target.closest("[data-back]")) back();
+  });
+
+  /* main */
+  $("#fromBtn").addEventListener("click", () => openCurrencyPicker("from"));
+  $("#toBtn").addEventListener("click", () => openCurrencyPicker("to"));
+  $("#swapBtn").addEventListener("click", () => { S.cur = { from: S.cur.to, to: S.cur.from }; store.set("currencies", S.cur); renderMain(); });
+  $("#rateRefresh").addEventListener("click", () => loadRates(true));
+  $("#ratesList").addEventListener("click", e => {
+    const b = e.target.closest(".rate-row"); if (!b) return;
+    S.cur.to = b.dataset.cur; store.set("currencies", S.cur); renderMain();
+  });
+
+  /* tip */
+  $("#tipCountry").addEventListener("change", e => { S.tip.country = e.target.value; saveTip(); renderTip(); });
+  $$("#s-tip .tfield").forEach(b => b.addEventListener("click", () => { tipField = b.dataset.field; renderTip(); }));
+  $("#tipChips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; S.tip.rate = b.dataset.rate; saveTip(); renderTip(); });
+
+  /* budget */
+  $("#bCountry").addEventListener("change", e => changeBudgetCountry(e.target.value));
+  $("#bCity").addEventListener("change", e => { S.budget.city = +e.target.value; saveBudget(); renderNote(); });
+  [["bStart", "start"], ["bEnd", "end"]].forEach(([id, k]) => $("#" + id).addEventListener("change", e => { S.budget[k] = e.target.value; saveBudget(); renderBudget(); }));
+  [["bLodging", "lodging", true], ["bFood", "food", true], ["bTrans", "transport", true], ["bMeals", "meals", false], ["bKm", "km", true]].forEach(([id, k, dot]) =>
+    $("#" + id).addEventListener("input", e => { const v = cleanNum(e.target.value, dot); if (v !== e.target.value) e.target.value = v; S.budget[k] = v; saveBudget(); renderBudget(); }));
+  $("#addExtra").addEventListener("click", () => {
+    S.budget.extras.push({ id: uid(), name: "", amount: "" }); saveBudget(); renderExtras(); renderBudget();
+    const rows = $$("#extraList .extra-row"); rows[rows.length - 1].querySelector("input").focus();
+  });
+  $("#extraList").addEventListener("input", e => {
+    const row = e.target.closest(".extra-row"); if (!row) return;
+    const x = S.budget.extras.find(i => i.id === row.dataset.id); if (!x) return;
+    if (e.target.dataset.k === "amount") { const v = cleanNum(e.target.value); if (v !== e.target.value) e.target.value = v; x.amount = v; }
+    else x.name = e.target.value;
+    saveBudget(); renderBudget();
+  });
+  $("#extraList").addEventListener("click", e => {
+    if (!e.target.closest("[data-del]")) return;
+    const id = e.target.closest(".extra-row").dataset.id;
+    S.budget.extras = S.budget.extras.filter(i => i.id !== id); saveBudget(); renderExtras(); renderBudget();
+  });
+  $("#bFill").addEventListener("click", () => {
+    const c = countryOf(S.budget.country);
+    S.budget.lodging = String(c.avg[0]); S.budget.food = String(c.avg[1]); S.budget.transport = String(c.avg[2]);
+    if (!S.budget.meals) S.budget.meals = "3"; if (!S.budget.km) S.budget.km = "10";
+    saveBudget(); renderBudgetSelects(); renderBudget(); toast(t("filled"));
+  });
+  $("#budgetReset").addEventListener("click", () => openConfirm(t("confirmResetBudget"), t("reset"), () => {
+    const country = S.budget.country, city = S.budget.city;
+    S.budget = Object.assign(DEF_BUDGET(), { country, city }); saveBudget(); renderBudgetSelects(); renderBudget();
+  }));
+
+  /* note */
+  $("#calPrev").addEventListener("click", () => { note.month = new Date(note.month.getFullYear(), note.month.getMonth() - 1, 1); renderNote(); });
+  $("#calNext").addEventListener("click", () => { note.month = new Date(note.month.getFullYear(), note.month.getMonth() + 1, 1); renderNote(); });
+  $("#cal").addEventListener("click", e => {
+    const b = e.target.closest(".day"); if (!b) return;
+    const d = parseYmd(b.dataset.date);
+    const sameDay = note.sel === b.dataset.date;
+    note.sel = b.dataset.date;
+    if (d.getMonth() !== note.month.getMonth()) note.month = new Date(d.getFullYear(), d.getMonth(), 1);
+    renderNote();
+    if (sameDay) openExpenseForm();
+  });
+  $("#noteAdd").addEventListener("click", () => openExpenseForm());
+  $("#noteAdd2").addEventListener("click", () => openExpenseForm());
+  $("#dayList").addEventListener("click", e => { const b = e.target.closest(".ex-item"); if (b) openExpenseDetail(b.dataset.id); });
+
+  /* settings */
+  $("#langList").addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (b) setLang(b.dataset.lang); });
+  $("#accNick").addEventListener("change", e => { S.settings.nickname = e.target.value.trim().slice(0, 20); saveSettings(); renderAccount(); renderSettings(); toast(t("nickSaved")); });
+  $("#accHome").addEventListener("change", e => { S.settings.home = e.target.value; saveSettings(); renderBudget(); });
+  $("#loginBtn").addEventListener("click", () => toast(t("loginSoon")));
+  $("#resetAll").addEventListener("click", () => openConfirm(t("confirmReset"), t("resetData"), () => {
+    store.clear();
+    S.cur = { from: "KRW", to: "USD" }; S.tip = { country: "US", amount: "", rate: "10" }; S.budget = DEF_BUDGET();
+    S.expenses = []; S.settings = { nickname: "", home: "KRW", lastTool: "" }; calc.expr = "";
+    if (S.rates) store.set("rates", S.rates);
+    renderAll(); toast(t("resetDone"));
+  }));
+
+  /* physical keyboard (desktop) */
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && overlay.classList.contains("open")) { closeSheet(); return; }
+    if (overlay.classList.contains("open") || e.ctrlKey || e.metaKey || e.altKey) return;
+    const tag = (document.activeElement && document.activeElement.tagName) || "";
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+    let k = e.key;
+    if (current === "main") {
+      const map = { Enter: "=", "=": "=", Backspace: "back", Delete: "C", Escape: "C", x: "*", X: "*", "(": "()", ")": "()", ",": "." };
+      k = map[k] || k;
+      if (/^[\d.+\-*/%=]$/.test(k) || ["back", "C", "()"].includes(k)) { e.preventDefault(); pressMain(k); pressFx("#mainPad", k); }
+    } else if (current === "tip") {
+      const map = { Backspace: "back", Delete: "C", Escape: "C", Enter: "swap", Tab: "swap", ",": "." };
+      k = map[k] || k;
+      if (/^[\d.%]$/.test(k) || ["back", "C", "swap"].includes(k)) { e.preventDefault(); pressTip(k); pressFx("#tipPad", k); }
+    }
+  });
+
+  applyI18n();
+  const start = location.hash.slice(1);
+  show(DEPTH.hasOwnProperty(start) ? start : "main", false);
+  if (!DEPTH.hasOwnProperty(start)) history.replaceState(null, "", "#main");
+  loadRates();
+}
+function pressFx(pad, k) {
+  const b = $(`${pad} [data-k="${CSS.escape(k)}"]`); if (!b) return;
+  b.classList.add("pressed"); setTimeout(() => b.classList.remove("pressed"), 120);
+}
+boot();
+</script>
+</body>
+</html>
