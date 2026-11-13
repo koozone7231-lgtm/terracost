@@ -131,7 +131,22 @@ input.inp.bad{border-color:var(--red)}
 .m-item:hover .m-ic,.m-item.on .m-ic{background:rgba(255,255,255,.18);color:#fff}
 .m-item:hover small,.m-item.on small,.m-item:hover .chev,.m-item.on .chev{color:rgba(255,255,255,.8)}
 .m-item:active{transform:scale(.98)}
-.menu-foot{padding:20px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--mut);font-size:12px}
+.menu-sub{text-align:center;color:var(--mut);font-size:12px;padding:0 0 4px}
+
+/* ---------- Brand logo (image file + SVG fallback) ---------- */
+.logo{display:inline-flex;align-items:center;height:var(--h,28px);line-height:1;flex:none}
+.logo-img{height:100%;width:auto;display:block}
+.logo-svg{display:none;align-items:center;gap:calc(var(--h,28px) * .16);height:100%}
+.logo.nofile .logo-img{display:none}
+.logo.nofile .logo-svg{display:inline-flex}
+.logo-svg svg{height:100%;width:auto;display:block}
+.logo-txt{font-weight:800;font-size:calc(var(--h,28px) * .74);letter-spacing:-.03em;color:#0B2545}
+.logo-txt b{color:var(--p);font-weight:800}
+.hdr .logo{--h:30px}
+.scr-foot{flex:none;display:flex;justify-content:center;align-items:center;padding:6px 0 calc(10px + env(safe-area-inset-bottom));--h:20px}
+.scr-foot .logo{opacity:.92}
+#s-budget .scr-foot{background:#fff;padding-top:2px}
+#s-budget .budget-foot{padding-bottom:10px}
 
 /* ---------- Tip ---------- */
 .tip-body{flex:1;display:flex;flex-direction:column;gap:10px;padding:2px 16px 16px;min-height:0}
@@ -182,6 +197,22 @@ input.inp.bad{border-color:var(--red)}
 .add-line{margin-top:10px;width:100%;height:42px;border-radius:12px;border:1.5px dashed #C7D3E2;color:var(--p);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;transition:background .15s}
 .add-line:hover{background:var(--p-softer)}
 .add-line .ic{width:18px;height:18px}
+.compare{background:#fff;border-radius:var(--r);padding:16px 14px 10px;margin-top:14px}
+.cmp-h b{display:flex;align-items:center;gap:8px;font-size:16px}
+.cmp-h b .ic{width:20px;height:20px;color:var(--p)}
+.cmp-h small{display:block;font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5}
+.cmp-row{padding:12px 2px;border-top:1px solid var(--line)}
+.cmp-row:first-child{border-top:0}
+.cmp-top{display:flex;align-items:center;gap:10px}
+.cmp-city{flex:1;min-width:0}
+.cmp-city b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-city small{display:block;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp-days{font-weight:800;font-size:14px;color:var(--p);text-align:right;white-space:nowrap}
+.cmp-days.no{color:var(--mut);font-weight:600;font-size:12px}
+.cmp-bar{height:8px;border-radius:999px;background:var(--bg);margin-top:8px;overflow:hidden}
+.cmp-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4BA3E3,var(--p));transition:width .35s}
+.cmp-row.best .cmp-days::before{content:"★ ";color:#F2B01E}
+#cmpList .empty{padding:18px 10px;margin-top:6px;background:var(--bg)}
 .budget-foot{flex:none;background:#fff;border-radius:24px 24px 0 0;padding:14px 18px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(11,37,69,.08)}
 .budget-foot .tot{font-size:28px;font-weight:800;letter-spacing:-.6px;color:var(--ink)}
 .bar{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--bg);margin-top:10px}
@@ -304,11 +335,10 @@ input.inp.bad{border-color:var(--red)}
 
   /* sidebar rail */
   .side{display:flex;flex-direction:column;flex:none;width:96px;background:#fff;border-right:1px solid var(--line);padding:18px 10px;gap:4px;z-index:5}
-  .side-brand{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;margin-bottom:14px;font-weight:800;font-size:19px;letter-spacing:-.3px}
-  .side-brand .mark{width:38px;height:38px;border-radius:12px}
-  .side-brand .mark .ic{width:23px;height:23px}
-  .side-brand .brand-txt{display:none}
-  .side-brand b{color:var(--p)}
+  .side-brand{display:flex;align-items:center;justify-content:center;height:48px;margin-bottom:14px}
+  .side-brand .side-mark{height:40px;display:block}
+  .side-brand .side-mark svg{height:100%;width:auto;display:block}
+  .side-brand .logo{display:none;--h:34px}
   .nav{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px;border-radius:16px;color:var(--mut);font-size:11px;font-weight:600;line-height:1.25;text-align:center;transition:background .15s,color .15s,transform .1s}
   .nav .ic{width:24px;height:24px}
   .nav:hover{background:var(--p-softer);color:var(--p)}
@@ -409,7 +439,8 @@ input.inp.bad{border-color:var(--red)}
 @media (min-width:1100px){
   .side{width:252px;padding:24px 16px}
   .side-brand{justify-content:flex-start;padding:0 8px}
-  .side-brand .brand-txt{display:inline}
+  .side-brand .side-mark{display:none}
+  .side-brand .logo{display:inline-flex}
   .nav{flex-direction:row;gap:12px;padding:13px 14px;font-size:15px;text-align:left}
   .nav .ic{width:22px;height:22px}
   .side-user{justify-content:flex-start;padding:12px;background:var(--bg)}
@@ -433,7 +464,7 @@ input.inp.bad{border-color:var(--red)}
 
 <!-- ================= SIDEBAR (tablet / desktop only) ================= -->
 <nav class="side" aria-label="TerraCost">
-  <div class="side-brand"><span class="mark"><i data-ic="globe"></i></span><span class="brand-txt">Terra<b>Cost</b></span></div>
+  <div class="side-brand"><span class="side-mark" data-logo-mark></span><i data-logo></i></div>
   <button class="nav" data-go="main"><i data-ic="coinSwap"></i><span data-i18n="exchange"></span></button>
   <button class="nav" data-go="note"><i data-ic="notebook"></i><span data-i18n="note"></span></button>
   <button class="nav" data-go="budget"><i data-ic="luggage"></i><span data-i18n="budget"></span></button>
@@ -448,7 +479,7 @@ input.inp.bad{border-color:var(--red)}
 <section class="screen" id="s-main">
   <header class="hdr">
     <button class="ibtn wide-hide" data-go="menu" data-i18n-aria="menu"><i data-ic="menu"></i></button>
-    <div class="brand wide-hide"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div>
+    <div class="wide-hide"><i data-logo></i></div>
     <h1 class="wide-only" data-i18n="exchange"></h1>
     <button class="ibtn wide-hide" data-go="settings" data-i18n-aria="settings"><i data-ic="gear"></i></button>
   </header>
@@ -470,6 +501,7 @@ input.inp.bad{border-color:var(--red)}
    </div>
    <div class="main-right"><div class="keypad" id="mainPad"></div></div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ================= 2. MENU ================= -->
@@ -486,7 +518,8 @@ input.inp.bad{border-color:var(--red)}
       <button class="m-item" data-go="tip" data-tool="tip"><span class="m-ic"><i data-ic="coin"></i></span><span><b data-i18n="tip"></b><small data-i18n="tipDesc"></small></span><i data-ic="chevR" class="chev"></i></button>
     </div>
   </div>
-  <div class="menu-foot"><div class="brand"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div><span data-i18n="appSub"></span></div>
+  <p class="menu-sub" data-i18n="appSub"></p>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ================= 3. TIP ================= -->
@@ -511,6 +544,7 @@ input.inp.bad{border-color:var(--red)}
    </div>
     <div class="keypad" id="tipPad"></div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ================= 4. BUDGET ================= -->
@@ -571,6 +605,10 @@ input.inp.bad{border-color:var(--red)}
       <button class="add-line" id="addExtra"><i data-ic="plus"></i><span data-i18n="addItem"></span></button>
     </div>
     </div>
+    <section class="compare" aria-labelledby="cmpTitle">
+      <div class="cmp-h"><b id="cmpTitle"><i data-ic="globe"></i><span data-i18n="compareTitle"></span></b><small id="cmpDesc"></small></div>
+      <div id="cmpList"></div>
+    </section>
   </div>
   <div class="budget-foot">
     <div class="row"><span class="muted" style="font-size:13px;font-weight:600" data-i18n="total"></span><span class="muted" style="font-size:13px" id="bApprox"></span></div>
@@ -580,6 +618,7 @@ input.inp.bad{border-color:var(--red)}
     <div class="wide-only foot-rows" id="bRows"></div>
   </div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ================= 5. NOTE ================= -->
@@ -610,6 +649,7 @@ input.inp.bad{border-color:var(--red)}
     <button class="btn primary block" style="margin-top:12px" id="noteAdd2"><i data-ic="plus"></i><span data-i18n="addRecord"></span></button>
    </div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ================= 6. SETTINGS ================= -->
@@ -624,8 +664,9 @@ input.inp.bad{border-color:var(--red)}
       <button class="li" data-go="lang"><span class="li-ic"><i data-ic="globe"></i></span><b data-i18n="language"></b><span class="val" id="setLangVal"></span><i data-ic="chevR" class="chev"></i></button>
       <button class="li" data-go="account"><span class="li-ic"><i data-ic="user"></i></span><b data-i18n="account"></b><span class="val" id="setAccVal"></span><i data-ic="chevR" class="chev"></i></button>
     </div>
-    <div class="foot-note"><div class="brand"><span class="mark"><i data-ic="globe"></i></span><span>Terra<b>Cost</b></span></div><span><span data-i18n="version"></span> 1.0.0</span></div>
+    <div class="foot-note"><span><span data-i18n="version"></span> 1.1.0</span></div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ===== 6-1. LANGUAGE ===== -->
@@ -636,6 +677,7 @@ input.inp.bad{border-color:var(--red)}
     <span class="ibtn placeholder"></span>
   </header>
   <div class="body"><div class="list" id="langList" style="margin-top:8px"></div></div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 <!-- ===== 6-2. ACCOUNT ===== -->
@@ -662,6 +704,7 @@ input.inp.bad{border-color:var(--red)}
     <p class="sec-t" data-i18n="data"></p>
     <div class="card row"><span id="accRecords"></span><button class="btn danger" style="height:38px;font-size:13px" id="resetAll"><i data-ic="trash"></i><span data-i18n="resetData"></span></button></div>
   </div>
+  <footer class="scr-foot"><i data-logo></i></footer>
 </section>
 
 </div><!-- /stage -->
@@ -738,7 +781,21 @@ const ICONS = {
   empty: '<path d="M6 4h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zM9 9h6M9 13h4"/>'
 };
 const ic = (n, cls = "") => `<svg class="ic ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n] || ""}</svg>`;
+/* Brand logo: uses assets/logo.png when present, otherwise the SVG mark + wordmark below.
+   To swap the logo, replace assets/logo.png (transparent PNG/SVG recommended). */
+const LOGO_SRC = "assets/logo.png";
+const LOGO_MARK = `<svg viewBox="0 0 64 52" aria-hidden="true">
+  <g fill="none" stroke="#1B4F86" stroke-width="3.2" stroke-linecap="round">
+    <circle cx="26" cy="29" r="19"/><ellipse cx="26" cy="29" rx="8.5" ry="19"/>
+    <path d="M26 10v38M9 22h34M9 36h34"/>
+  </g>
+  <path d="M1.5 41.5c11 7.5 31 1.5 47-21.5l2.6 1.7C37 45 13 51.5 1.5 41.5z" fill="#0879C9"/>
+  <path transform="translate(53 12) rotate(-38)" fill="#1B4F86" d="M-8 0l1-3h1.3l1.9 1.6 3.6-.2L-2.6-7h2.2l4.4 5.3 5.6-.3c2 0 2.4 2 0 2s0 0 0 0c2.4 0 2 2 0 2l-5.6-.3L-.4 6.9h-2.2L-.2 1.6-3.8 1.4-5.7 3H-7z"/>
+</svg>`;
+const logoHTML = () => `<span class="logo"><img class="logo-img" src="${LOGO_SRC}" alt="TerraCost" onerror="this.parentNode.classList.add('nofile')"><span class="logo-svg">${LOGO_MARK}<span class="logo-txt">Terra<b>Cost</b></span></span></span>`;
 function hydrateIcons(root = document) {
+  $$("i[data-logo]", root).forEach(el => { const tmp = document.createElement("span"); tmp.innerHTML = logoHTML(); el.replaceWith(tmp.firstChild); });
+  $$("[data-logo-mark]", root).forEach(el => el.innerHTML = LOGO_MARK);
   $$("i[data-ic]", root).forEach(el => {
     const tmp = document.createElement("span"); tmp.innerHTML = ic(el.dataset.ic, el.className);
     el.replaceWith(tmp.firstChild);
@@ -752,6 +809,7 @@ const FLAGS = {
   US: (() => { let s = '<rect width="30" height="20" fill="#B22234"/>'; for (let i = 1; i < 13; i += 2) s += `<rect y="${(i * 20 / 13).toFixed(2)}" width="30" height="${(20 / 13).toFixed(2)}" fill="#fff"/>`; return s + '<rect width="13" height="10.77" fill="#3C3B6E"/>'; })(),
   JP: '<rect width="30" height="20" fill="#fff"/><circle cx="15" cy="10" r="6" fill="#BC002D"/>',
   EU: (() => { let s = '<rect width="30" height="20" fill="#003399"/>'; for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; s += `<circle cx="${(15 + 6 * Math.cos(a)).toFixed(2)}" cy="${(10 + 6 * Math.sin(a)).toFixed(2)}" r=".9" fill="#FFCC00"/>`; } return s; })(),
+  GR: (() => { let s = '<rect width="30" height="20" fill="#0D5EAF"/>'; for (let i = 1; i < 9; i += 2) s += `<rect y="${(i * 20 / 9).toFixed(2)}" width="30" height="${(20 / 9).toFixed(2)}" fill="#fff"/>`; return s + '<rect width="11.11" height="11.11" fill="#0D5EAF"/><path d="M5.56 0v11.11M0 5.56h11.11" stroke="#fff" stroke-width="2.22"/>'; })(),
   GB: '<rect width="30" height="20" fill="#012169"/><path d="M0 0l30 20M30 0 0 20" stroke="#fff" stroke-width="4"/><path d="M0 0l30 20M30 0 0 20" stroke="#C8102E" stroke-width="1.4"/><path d="M15 0v20M0 10h30" stroke="#fff" stroke-width="6"/><path d="M15 0v20M0 10h30" stroke="#C8102E" stroke-width="3.4"/>',
   CN: `<rect width="30" height="20" fill="#DE2910"/><polygon points="${starPts(6, 6, 3.2)}" fill="#FFDE00"/><polygon points="${starPts(11, 2.6, 1)}" fill="#FFDE00"/><polygon points="${starPts(13, 4.8, 1)}" fill="#FFDE00"/><polygon points="${starPts(13, 7.8, 1)}" fill="#FFDE00"/><polygon points="${starPts(11, 10, 1)}" fill="#FFDE00"/>`,
   TH: '<rect width="30" height="20" fill="#A51931"/><rect y="3.33" width="30" height="13.34" fill="#F4F5F8"/><rect y="6.67" width="30" height="6.66" fill="#2D2A4A"/>',
@@ -767,14 +825,17 @@ const COUNTRIES = [
   { code: "US", cur: "USD", avg: [220, 5.7, 2.5], cities: [["뉴욕", "New York", "ニューヨーク", "纽约"], ["로스앤젤레스", "Los Angeles", "ロサンゼルス", "洛杉矶"], ["샌프란시스코", "San Francisco", "サンフランシスコ", "旧金山"], ["하와이", "Hawaii", "ハワイ", "夏威夷"]] },
   { code: "JP", cur: "JPY", avg: [15000, 480, 400], cities: [["도쿄", "Tokyo", "東京", "东京"], ["오사카", "Osaka", "大阪", "大阪"], ["후쿠오카", "Fukuoka", "福岡", "福冈"], ["삿포로", "Sapporo", "札幌", "札幌"]] },
   { code: "EU", cur: "EUR", avg: [150, 5.3, 2.2], cities: [["파리", "Paris", "パリ", "巴黎"], ["로마", "Rome", "ローマ", "罗马"], ["바르셀로나", "Barcelona", "バルセロナ", "巴塞罗那"], ["베를린", "Berlin", "ベルリン", "柏林"]] },
+  { code: "GR", cur: "EUR", avg: [263713, 9212, 1818], avgCur: "KRW", cities: [["아테네", "Athens", "アテネ", "雅典"]] },
   { code: "GB", cur: "GBP", avg: [160, 4.5, 2.4], cities: [["런던", "London", "ロンドン", "伦敦"], ["에든버러", "Edinburgh", "エディンバラ", "爱丁堡"], ["맨체스터", "Manchester", "マンチェスター", "曼彻斯特"]] },
   { code: "CN", cur: "CNY", avg: [500, 25, 3], cities: [["베이징", "Beijing", "北京", "北京"], ["상하이", "Shanghai", "上海", "上海"], ["칭다오", "Qingdao", "青島", "青岛"]] },
   { code: "TH", cur: "THB", avg: [1800, 140, 8], cities: [["방콕", "Bangkok", "バンコク", "曼谷"], ["푸껫", "Phuket", "プーケット", "普吉"], ["치앙마이", "Chiang Mai", "チェンマイ", "清迈"]] },
   { code: "VN", cur: "VND", avg: [900000, 75000, 15000], cities: [["다낭", "Da Nang", "ダナン", "岘港"], ["하노이", "Hanoi", "ハノイ", "河内"], ["호찌민", "Ho Chi Minh City", "ホーチミン", "胡志明市"], ["나트랑", "Nha Trang", "ニャチャン", "芽庄"]] }
 ];
-const CURRENCIES = COUNTRIES.map(c => c.cur);
+const CURRENCIES = [...new Set(COUNTRIES.map(c => c.cur))];
 const curCountry = cur => (COUNTRIES.find(c => c.cur === cur) || COUNTRIES[0]).code;
 const countryOf = code => COUNTRIES.find(c => c.code === code) || COUNTRIES[0];
+/* average daily-cost inputs of a country, converted into that country's own currency */
+const avgLocal = c => c.avg.map(v => c.avgCur && c.avgCur !== c.cur ? roundCur(convert(v, c.avgCur, c.cur), c.cur) : v);
 const SAMPLE_RATES = { USD: 1, KRW: 1380, JPY: 152, EUR: 0.92, GBP: 0.78, CNY: 7.2, THB: 35, VND: 25400 };
 const ZERO_DEC = ["KRW", "JPY", "VND"];
 const CATS = [
@@ -796,7 +857,7 @@ const LANGS = [
 ];
 const I18N = {
 ko: {
-  appSub: "여행 비용 매니저", exchange: "환율 계산기", otherCurrencies: "다른 통화로 보기", perDay: "1일 평균", menu: "Menu", note: "여행 지출 노트", budget: "여행 경비 계산", tip: "팁 계산", settings: "Setting", language: "언어", account: "계정",
+  appSub: "여행 비용 매니저", exchange: "환율 계산기", otherCurrencies: "다른 통화로 보기", perDay: "1일 평균", compareTitle: "동일 예산으로 다른 나라 여행하기", compareBase: "총 비용 {total} 기준", compareDesc: "1일 평균 = 숙박 1박 + 식비 3끼 + 교통 {km}km", canTravel: "총 {d}일({n}박) 여행 가능", notEnough: "1일 경비보다 예산이 적어요", compareEmpty: "경비를 입력하면 다른 나라에서 며칠 여행할 수 있는지 비교해 드려요", dailyAvg: "1일 평균 {v}", menu: "Menu", note: "여행 지출 노트", budget: "여행 경비 계산", tip: "팁 계산", settings: "Setting", language: "언어", account: "계정",
   noteDesc: "달력으로 날짜별 지출 기록", budgetDesc: "숙박비 · 식비 · 교통비 합계", tipDesc: "팁과 최종 결제 금액 계산",
   liveRate: "실시간 환율", sampleRate: "샘플 환율 사용 중", updated: "업데이트", selectCurrency: "통화 선택", calcError: "계산할 수 없는 식이에요",
   country: "국가", city: "도시", billAmount: "결제 금액", tipRate: "팁 비율", tipAmount: "팁 금액", finalAmount: "최종 금액",
@@ -815,7 +876,7 @@ ko: {
   langChanged: "한국어로 변경했어요", version: "버전", ratesUpdated: "환율을 업데이트했어요", ratesFailed: "환율을 불러오지 못해 샘플 환율을 사용해요", nickSaved: "닉네임을 저장했어요"
 },
 en: {
-  appSub: "Travel cost manager", exchange: "Currency converter", otherCurrencies: "Other currencies", perDay: "Per day", menu: "Menu", note: "Travel expense note", budget: "Trip budget", tip: "Tip calculator", settings: "Setting", language: "Language", account: "Account",
+  appSub: "Travel cost manager", exchange: "Currency converter", otherCurrencies: "Other currencies", perDay: "Per day", compareTitle: "Same budget, other destinations", compareBase: "Based on a total of {total}", compareDesc: "Daily avg = 1 night + 3 meals + {km} km transport", canTravel: "{d} days ({n} nights)", notEnough: "Budget is below one day's cost", compareEmpty: "Enter your costs to see how long you could travel elsewhere", dailyAvg: "Daily avg {v}", menu: "Menu", note: "Travel expense note", budget: "Trip budget", tip: "Tip calculator", settings: "Setting", language: "Language", account: "Account",
   noteDesc: "Log spending by date on a calendar", budgetDesc: "Lodging, food and transport total", tipDesc: "Tip and final amount to pay",
   liveRate: "Live rate", sampleRate: "Using sample rates", updated: "Updated", selectCurrency: "Select currency", calcError: "Can't calculate this expression",
   country: "Country", city: "City", billAmount: "Bill amount", tipRate: "Tip rate", tipAmount: "Tip", finalAmount: "Total to pay",
@@ -834,7 +895,7 @@ en: {
   langChanged: "Language set to English", version: "Version", ratesUpdated: "Rates updated", ratesFailed: "Couldn't load rates. Using sample rates.", nickSaved: "Nickname saved"
 },
 ja: {
-  appSub: "旅行費用マネージャー", exchange: "為替計算機", otherCurrencies: "他の通貨で見る", perDay: "1日平均", menu: "Menu", note: "旅行支出ノート", budget: "旅行費用計算", tip: "チップ計算", settings: "Setting", language: "言語", account: "アカウント",
+  appSub: "旅行費用マネージャー", exchange: "為替計算機", otherCurrencies: "他の通貨で見る", perDay: "1日平均", compareTitle: "同じ予算で他の国を旅する", compareBase: "総費用 {total} 基準", compareDesc: "1日平均 = 宿泊1泊 + 食事3食 + 交通{km}km", canTravel: "合計{d}日({n}泊)旅行可能", notEnough: "1日の費用より予算が少ないです", compareEmpty: "費用を入力すると、他の国で何日旅行できるか比較します", dailyAvg: "1日平均 {v}", menu: "Menu", note: "旅行支出ノート", budget: "旅行費用計算", tip: "チップ計算", settings: "Setting", language: "言語", account: "アカウント",
   noteDesc: "カレンダーで日別に支出を記録", budgetDesc: "宿泊・食費・交通費の合計", tipDesc: "チップと支払総額を計算",
   liveRate: "リアルタイム為替", sampleRate: "サンプルレート使用中", updated: "更新", selectCurrency: "通貨を選択", calcError: "計算できない式です",
   country: "国", city: "都市", billAmount: "支払金額", tipRate: "チップ率", tipAmount: "チップ", finalAmount: "支払総額",
@@ -853,7 +914,7 @@ ja: {
   langChanged: "日本語に変更しました", version: "バージョン", ratesUpdated: "為替を更新しました", ratesFailed: "為替を取得できないため、サンプルレートを使用します", nickSaved: "ニックネームを保存しました"
 },
 zh: {
-  appSub: "旅行费用管家", exchange: "汇率计算器", otherCurrencies: "其他货币", perDay: "日均", menu: "Menu", note: "旅行支出笔记", budget: "旅行费用计算", tip: "小费计算", settings: "Setting", language: "语言", account: "账户",
+  appSub: "旅行费用管家", exchange: "汇率计算器", otherCurrencies: "其他货币", perDay: "日均", compareTitle: "同样预算去其他国家", compareBase: "以总费用 {total} 计算", compareDesc: "日均 = 住宿1晚 + 3餐 + 交通{km}公里", canTravel: "可旅行{d}天({n}晚)", notEnough: "预算低于一天的费用", compareEmpty: "输入费用后,即可比较在其他国家能旅行几天", dailyAvg: "日均 {v}", menu: "Menu", note: "旅行支出笔记", budget: "旅行费用计算", tip: "小费计算", settings: "Setting", language: "语言", account: "账户",
   noteDesc: "用日历按日期记录支出", budgetDesc: "住宿、餐饮、交通费合计", tipDesc: "计算小费与最终金额",
   liveRate: "实时汇率", sampleRate: "正在使用示例汇率", updated: "更新于", selectCurrency: "选择货币", calcError: "无法计算该算式",
   country: "国家", city: "城市", billAmount: "消费金额", tipRate: "小费比例", tipAmount: "小费", finalAmount: "最终金额",
@@ -872,7 +933,7 @@ zh: {
   langChanged: "已切换为中文", version: "版本", ratesUpdated: "汇率已更新", ratesFailed: "无法获取汇率,使用示例汇率", nickSaved: "昵称已保存"
 },
 es: {
-  appSub: "Gestor de gastos de viaje", exchange: "Conversor de divisas", otherCurrencies: "Otras divisas", perDay: "Por día", menu: "Menú", note: "Notas de gastos", budget: "Presupuesto de viaje", tip: "Propinas", settings: "Ajustes", language: "Idioma", account: "Cuenta",
+  appSub: "Gestor de gastos de viaje", exchange: "Conversor de divisas", otherCurrencies: "Otras divisas", perDay: "Por día", compareTitle: "Mismo presupuesto, otros destinos", compareBase: "Con un total de {total}", compareDesc: "Media diaria = 1 noche + 3 comidas + {km} km", canTravel: "{d} días ({n} noches)", notEnough: "El presupuesto no cubre un día", compareEmpty: "Introduce los gastos para ver cuántos días podrías viajar en otro lugar", dailyAvg: "Media diaria {v}", menu: "Menú", note: "Notas de gastos", budget: "Presupuesto de viaje", tip: "Propinas", settings: "Ajustes", language: "Idioma", account: "Cuenta",
   noteDesc: "Registra gastos por fecha en un calendario", budgetDesc: "Total de alojamiento, comida y transporte", tipDesc: "Propina e importe final",
   liveRate: "Tipo en vivo", sampleRate: "Usando tipos de ejemplo", updated: "Actualizado", selectCurrency: "Elegir divisa", calcError: "No se puede calcular esta expresión",
   country: "País", city: "Ciudad", billAmount: "Importe", tipRate: "Propina (%)", tipAmount: "Propina", finalAmount: "Total a pagar",
@@ -891,7 +952,7 @@ es: {
   langChanged: "Idioma: español", version: "Versión", ratesUpdated: "Tipos actualizados", ratesFailed: "No se pudieron cargar los tipos. Usando tipos de ejemplo.", nickSaved: "Apodo guardado"
 },
 fr: {
-  appSub: "Gestion des frais de voyage", exchange: "Convertisseur", otherCurrencies: "Autres devises", perDay: "Par jour", menu: "Menu", note: "Carnet de dépenses", budget: "Budget de voyage", tip: "Pourboire", settings: "Paramètres", language: "Langue", account: "Compte",
+  appSub: "Gestion des frais de voyage", exchange: "Convertisseur", otherCurrencies: "Autres devises", perDay: "Par jour", compareTitle: "Même budget, autres destinations", compareBase: "Sur la base de {total}", compareDesc: "Moyenne/jour = 1 nuit + 3 repas + {km} km", canTravel: "{d} jours ({n} nuits)", notEnough: "Budget inférieur au coût d'une journée", compareEmpty: "Saisissez vos frais pour comparer la durée possible ailleurs", dailyAvg: "Moyenne/jour {v}", menu: "Menu", note: "Carnet de dépenses", budget: "Budget de voyage", tip: "Pourboire", settings: "Paramètres", language: "Langue", account: "Compte",
   noteDesc: "Notez vos dépenses par date", budgetDesc: "Total hébergement, repas et transport", tipDesc: "Pourboire et montant final",
   liveRate: "Taux en direct", sampleRate: "Taux d'exemple utilisés", updated: "Mis à jour", selectCurrency: "Choisir une devise", calcError: "Impossible de calculer cette expression",
   country: "Pays", city: "Ville", billAmount: "Montant", tipRate: "Pourboire (%)", tipAmount: "Pourboire", finalAmount: "Total à payer",
@@ -910,7 +971,7 @@ fr: {
   langChanged: "Langue : français", version: "Version", ratesUpdated: "Taux mis à jour", ratesFailed: "Taux indisponibles. Taux d'exemple utilisés.", nickSaved: "Pseudo enregistré"
 },
 de: {
-  appSub: "Reisekosten-Manager", exchange: "Währungsrechner", otherCurrencies: "Andere Währungen", perDay: "Pro Tag", menu: "Menü", note: "Ausgabenbuch", budget: "Reisebudget", tip: "Trinkgeld", settings: "Einstellungen", language: "Sprache", account: "Konto",
+  appSub: "Reisekosten-Manager", exchange: "Währungsrechner", otherCurrencies: "Andere Währungen", perDay: "Pro Tag", compareTitle: "Gleiches Budget, andere Ziele", compareBase: "Basis: Gesamt {total}", compareDesc: "Tagesschnitt = 1 Nacht + 3 Mahlzeiten + {km} km", canTravel: "{d} Tage ({n} Nächte)", notEnough: "Budget reicht nicht für einen Tag", compareEmpty: "Kosten eingeben, um die mögliche Reisedauer anderswo zu vergleichen", dailyAvg: "Tagesschnitt {v}", menu: "Menü", note: "Ausgabenbuch", budget: "Reisebudget", tip: "Trinkgeld", settings: "Einstellungen", language: "Sprache", account: "Konto",
   noteDesc: "Ausgaben im Kalender pro Tag erfassen", budgetDesc: "Summe aus Unterkunft, Essen, Transport", tipDesc: "Trinkgeld und Endbetrag",
   liveRate: "Live-Kurs", sampleRate: "Beispielkurse aktiv", updated: "Aktualisiert", selectCurrency: "Währung wählen", calcError: "Ausdruck kann nicht berechnet werden",
   country: "Land", city: "Stadt", billAmount: "Rechnungsbetrag", tipRate: "Trinkgeld (%)", tipAmount: "Trinkgeld", finalAmount: "Endbetrag",
@@ -937,7 +998,7 @@ const today = new Date(); today.setHours(0, 0, 0, 0);
 const DEF_BUDGET = () => ({ country: "US", city: 0, start: ymd(today), end: ymd(addDays(today, 4)), lodging: "", food: "", meals: "3", transport: "", km: "10", extras: [] });
 const S = {
   lang: store.get("lang", null),
-  cur: store.get("currencies", { from: "KRW", to: "USD" }),
+  cur: store.get("currencies", { from: "KR", to: "US" }),
   rates: store.get("rates", null),
   tip: store.get("tip", { country: "US", amount: "", rate: "10" }),
   budget: Object.assign(DEF_BUDGET(), store.get("budget", {})),
@@ -949,8 +1010,13 @@ if (!S.lang || !I18N[S.lang]) {
   const nav = (navigator.language || "ko").slice(0, 2);
   S.lang = I18N[nav] ? nav : "ko";
 }
-if (!CURRENCIES.includes(S.cur.from)) S.cur.from = "KRW";
-if (!CURRENCIES.includes(S.cur.to)) S.cur.to = "USD";
+/* converter now stores country codes (KR, GR…); migrate old currency-code values */
+["from", "to"].forEach((k, i) => {
+  let v = S.cur[k];
+  if (typeof v === "string" && v.length === 3) v = curCountry(v);
+  if (!COUNTRIES.some(c => c.code === v)) v = i ? "US" : "KR";
+  S.cur[k] = v;
+});
 if (!Array.isArray(S.expenses)) S.expenses = [];
 const saveBudget = () => store.set("budget", S.budget);
 const saveExpenses = () => store.set("expenses", S.expenses);
@@ -1120,11 +1186,12 @@ function pressMain(k) {
 function flash() { const el = $("#exprView"); el.animate([{ transform: "translateX(0)" }, { transform: "translateX(-6px)" }, { transform: "translateX(6px)" }, { transform: "translateX(0)" }], { duration: 180 }); }
 
 function renderMain() {
-  const { from, to } = S.cur;
-  $("#fromBtn").innerHTML = flag(curCountry(from)) + `<span>${from}</span>` + ic("chevD");
-  $("#toBtn").innerHTML = flag(curCountry(to)) + `<span>${to}</span>` + ic("chevD");
-  $("#fromName").textContent = curName(from);
-  $("#toName").textContent = curName(to);
+  const fromC = S.cur.from, toC = S.cur.to;
+  const from = countryOf(fromC).cur, to = countryOf(toC).cur;
+  $("#fromBtn").innerHTML = flag(fromC) + `<span>${from}</span>` + ic("chevD");
+  $("#toBtn").innerHTML = flag(toC) + `<span>${to}</span>` + ic("chevD");
+  $("#fromName").textContent = `${regionName(fromC)} · ${curName(from)}`;
+  $("#toName").textContent = `${regionName(toC)} · ${curName(to)}`;
   const e = calc.expr;
   const ev = $("#exprView");
   ev.textContent = e ? showExpr(e) : "0";
@@ -1145,8 +1212,8 @@ function renderMain() {
   const rs = r >= 100 ? r.toFixed(2) : r >= 1 ? r.toFixed(4) : r.toPrecision(4);
   $("#rateLine").textContent = `1 ${from} = ${Number(rs).toLocaleString(loc(), { maximumFractionDigits: 6 })} ${to}`;
   const base = isNaN(v) || !e ? 1 : v;
-  $("#ratesList").innerHTML = CURRENCIES.filter(c => c !== from).map(c => `
-    <button class="rate-row ${c === to ? "on" : ""}" data-cur="${c}">${flag(curCountry(c))}<b>${c}</b><span>${esc(curName(c))}</span><strong>${fmt(convert(base, from, c), c)}</strong></button>`).join("");
+  $("#ratesList").innerHTML = COUNTRIES.filter(c => c.code !== fromC).map(c => `
+    <button class="rate-row ${c.code === toC ? "on" : ""}" data-country="${c.code}">${flag(c.code)}<b>${c.cur}</b><span>${esc(regionName(c.code))} · ${esc(curName(c.cur))}</span><strong>${fmt(convert(base, from, c.cur), c.cur)}</strong></button>`).join("");
   renderRateStatus();
 }
 
@@ -1216,7 +1283,8 @@ function renderBudgetSelects() {
   const sym = curSymbol(c.cur);
   $$("#s-budget .csym").forEach(el => el.textContent = sym);
   const nf = v => Number(v).toLocaleString(loc());
-  $("#bLodging").placeholder = nf(c.avg[0]); $("#bFood").placeholder = nf(c.avg[1]); $("#bTrans").placeholder = nf(c.avg[2]);
+  const avg = avgLocal(c);
+  $("#bLodging").placeholder = nf(avg[0]); $("#bFood").placeholder = nf(avg[1]); $("#bTrans").placeholder = nf(avg[2]);
   $("#bMeals").placeholder = "3"; $("#bKm").placeholder = "10";
   renderExtras();
 }
@@ -1246,6 +1314,31 @@ function renderBudget() {
   $("#bLegend").innerHTML = parts.map(p => `<span><i style="background:${p[2]}"></i>${esc(t(p[0]))} ${r.total > 0 ? Math.round(p[1] / r.total * 100) : 0}%</span>`).join("");
   $("#bRows").innerHTML = parts.map(p => `<div class="kv"><span>${esc(t(p[0]))}</span><b>${fmt(p[1], cur, { trim: true })}</b></div>`).join("")
     + `<div class="kv"><span>${esc(t("perDay"))}</span><b>${r.days ? fmt(r.total / r.days, cur) : "—"}</b></div>`;
+  renderCompare(r.total, cur);
+}
+/* Same budget, other destinations:
+   days = floor(total / daily average), daily average = 1 night + 3 meals + transport(km/day). */
+function renderCompare(total, cur) {
+  const km = num(S.budget.km) || 10;
+  $("#cmpDesc").textContent = (total > 0 ? t("compareBase", { total: fmt(total, cur) }) + " · " : "") + t("compareDesc", { km });
+  if (!(total > 0)) {
+    $("#cmpList").innerHTML = `<div class="empty"><small>${esc(t("compareEmpty"))}</small></div>`;
+    return;
+  }
+  const rows = COUNTRIES.filter(c => c.code !== S.budget.country).map(c => {
+    const [stay, meal, perKm] = c.avg, src = c.avgCur || c.cur;
+    const daily = convert(stay + meal * 3 + perKm * km, src, cur);
+    return { c, daily, days: Math.floor(total / daily) };
+  }).sort((a, b) => b.days - a.days || a.daily - b.daily);
+  const max = Math.max(1, ...rows.map(r => r.days));
+  $("#cmpList").innerHTML = rows.map((r, i) => `
+    <div class="cmp-row ${i === 0 && r.days > 0 ? "best" : ""}">
+      <div class="cmp-top">${flag(r.c.code)}
+        <div class="cmp-city"><b>${esc(r.c.cities[0][cityIdx()])}, ${esc(regionName(r.c.code))}</b><small>${esc(t("dailyAvg", { v: fmt(r.daily, cur) }))}</small></div>
+        ${r.days > 0 ? `<span class="cmp-days">${esc(t("canTravel", { d: r.days, n: r.days - 1 }))}</span>` : `<span class="cmp-days no">${esc(t("notEnough"))}</span>`}
+      </div>
+      <div class="cmp-bar"><i style="width:${r.days / max * 100}%"></i></div>
+    </div>`).join("");
 }
 function changeBudgetCountry(code) {
   const b = S.budget, oldCur = countryOf(b.country).cur, newCur = countryOf(code).cur;
@@ -1415,11 +1508,11 @@ function openConfirm(msg, okLabel, onOk) {
 }
 function openCurrencyPicker(which) {
   const curSel = S.cur[which];
-  openSheet(`<h2>${esc(t("selectCurrency"))}</h2>` + CURRENCIES.map(c => `
-    <button class="cur-opt ${c === curSel ? "on" : ""}" data-cur="${c}">${flag(curCountry(c))}<b>${c}</b><span>${esc(curName(c))} · ${esc(regionName(curCountry(c)))}</span>${ic("check")}</button>`).join(""),
-    sh => sh.addEventListener("click", e => {
+  openSheet(`<h2>${esc(t("selectCurrency"))}</h2><div id="curList">` + COUNTRIES.map(x => `
+    <button class="cur-opt ${x.code === curSel ? "on" : ""}" data-country="${x.code}">${flag(x.code)}<b>${x.cur}</b><span>${esc(regionName(x.code))} · ${esc(curName(x.cur))} (${esc(curSymbol(x.cur))})</span>${ic("check")}</button>`).join("") + `</div>`,
+    sh => $("#curList", sh).addEventListener("click", e => {
       const b = e.target.closest(".cur-opt"); if (!b) return;
-      const c = b.dataset.cur, other = which === "from" ? "to" : "from";
+      const c = b.dataset.country, other = which === "from" ? "to" : "from";
       if (S.cur[other] === c) S.cur[other] = S.cur[which];
       S.cur[which] = c; store.set("currencies", S.cur); closeSheet(); renderMain();
     }));
@@ -1517,7 +1610,7 @@ function boot() {
   $("#rateRefresh").addEventListener("click", () => loadRates(true));
   $("#ratesList").addEventListener("click", e => {
     const b = e.target.closest(".rate-row"); if (!b) return;
-    S.cur.to = b.dataset.cur; store.set("currencies", S.cur); renderMain();
+    S.cur.to = b.dataset.country; store.set("currencies", S.cur); renderMain();
   });
 
   /* tip */
@@ -1549,7 +1642,8 @@ function boot() {
   });
   $("#bFill").addEventListener("click", () => {
     const c = countryOf(S.budget.country);
-    S.budget.lodging = String(c.avg[0]); S.budget.food = String(c.avg[1]); S.budget.transport = String(c.avg[2]);
+    const avg = avgLocal(c);
+    S.budget.lodging = String(avg[0]); S.budget.food = String(avg[1]); S.budget.transport = String(avg[2]);
     if (!S.budget.meals) S.budget.meals = "3"; if (!S.budget.km) S.budget.km = "10";
     saveBudget(); renderBudgetSelects(); renderBudget(); toast(t("filled"));
   });
@@ -1581,7 +1675,7 @@ function boot() {
   $("#loginBtn").addEventListener("click", () => toast(t("loginSoon")));
   $("#resetAll").addEventListener("click", () => openConfirm(t("confirmReset"), t("resetData"), () => {
     store.clear();
-    S.cur = { from: "KRW", to: "USD" }; S.tip = { country: "US", amount: "", rate: "10" }; S.budget = DEF_BUDGET();
+    S.cur = { from: "KR", to: "US" }; S.tip = { country: "US", amount: "", rate: "10" }; S.budget = DEF_BUDGET();
     S.expenses = []; S.settings = { nickname: "", home: "KRW", lastTool: "" }; calc.expr = "";
     if (S.rates) store.set("rates", S.rates);
     renderAll(); toast(t("resetDone"));
